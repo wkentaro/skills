@@ -1,7 +1,7 @@
 interface:
   display_name: "Dictation"
   short_description: "Check voice-dictated requests for errors"
-  default_prompt: "Use $dictation on to enable dictation mode for this conversation."
+  default_prompt: "Use $hear-me on to enable dictation mode for this conversation."
 
 policy:
   allow_implicit_invocation: false

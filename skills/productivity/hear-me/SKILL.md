@@ -1,5 +1,5 @@
 ---
-name: dictation
+name: hear-me
 description: Handles voice-dictated requests with a readback and targeted transcription checks, either once or for the current conversation.
 disable-model-invocation: true
 argument-hint: "<dictated request>|on|off"
