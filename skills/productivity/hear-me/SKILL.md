@@ -2,7 +2,7 @@
 name: hear-me
 description: Handles voice-dictated requests with a readback and targeted transcription checks, either once or for the current conversation.
 disable-model-invocation: true
-argument-hint: "<dictated request>|on|off"
+argument-hint: "[dictated request|on|off]"
 ---
 
 # Hear Me
@@ -18,13 +18,11 @@ Read the argument text that follows the explicit skill invocation. Match the con
 after trimming whitespace and without case sensitivity. Treat a control word as a control
 only when it is the entire argument.
 
-- `on`: Enable dictation mode for the current conversation. Confirm the new state. Apply the
-  protocol to each later user message until the mode is disabled.
+- No argument or `on`: Enable dictation mode for the current conversation. Confirm the new
+  state. Apply the protocol to each later user message until the mode is disabled.
 - `off`: Disable dictation mode. Confirm the new state. Treat later messages as normal text.
 - Any other non-empty argument: Apply the protocol to that request once. Preserve the current
   mode state. A later clarification is normal text when the mode is off.
-- No argument: Report whether dictation mode is on or off, then state that this skill accepts
-  `on`, `off`, or a dictated request.
 
 Initialize dictation mode as off in each new conversation. Store its state only in the
 current conversation. Control invocations do not receive a `Heard:` readback.
