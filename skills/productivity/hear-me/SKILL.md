@@ -5,7 +5,7 @@ disable-model-invocation: true
 argument-hint: "<dictated request>|on|off"
 ---
 
-# Dictation
+# Hear Me
 
 Speech-to-text errors cluster in **brittle terms**: names, commands, flags, paths,
 identifiers, acronyms, versions, numbers, negation, and action words. Focus on a brittle term
