@@ -14,18 +14,14 @@ Accept ordinary wording as given.
 
 ## Invocation
 
-Read the argument text that follows the explicit skill invocation. Match the control words
-after trimming whitespace and without case sensitivity. Treat a control word as a control
-only when it is the entire argument.
+Treat `on` or `off` as a control only when it is the entire argument. Reply to a control
+with only a confirmation of the new state.
 
-- No argument or `on`: Enable dictation mode for the current conversation. Confirm the new
-  state. Apply the protocol to each later user message until the mode is disabled.
-- `off`: Disable dictation mode. Confirm the new state. Treat later messages as normal text.
-- Any other non-empty argument: Apply the protocol to that request once. Preserve the current
-  mode state. A later clarification is normal text when the mode is off.
-
-Initialize dictation mode as off in each new conversation. Store its state only in the
-current conversation. Control invocations do not receive a `Heard:` readback.
+- No argument or `on`: Enable dictation mode for the current conversation. Apply the
+  protocol to each later user message until the mode is disabled.
+- `off`: Disable dictation mode. Treat later messages as normal text.
+- Any other non-empty argument: Apply the protocol to that request once. Preserve the
+  current mode state, so a later clarification is normal text when the mode is off.
 
 ## Protocol
 
@@ -42,11 +38,7 @@ current conversation. Control invocations do not receive a `Heard:` readback.
    conversation, repository state, and cheap read-only checks to test candidates. Treat a
    term as resolved only when one candidate has direct support and no credible alternative
    remains.
-3. Proceed in the same turn when all dependent terms are resolved. The readback is an error
-   check, not a confirmation gate.
-4. When two or more credible interpretations remain, ask one focused question before the
-   dependent work. Complete every independent part of the request while that part is
-   blocked. Mutate state only when the action and its target are both resolved.
-
-The protocol is complete when every consequential ambiguity is resolved and stated, or is
-isolated behind a specific question, and all independent work is complete.
+3. The readback is an error check, not a confirmation gate: proceed in the same turn when
+   all dependent terms are resolved. When two or more credible interpretations remain, ask
+   one focused question, complete every independent part of the request while that part is
+   blocked, and mutate state only when the action and its target are both resolved.
