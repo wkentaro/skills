@@ -19,3 +19,7 @@ Triage uses the five standard labels. See `docs/agents/triage-labels.md`.
 ### Domain docs
 
 Domain docs use a single-context layout. See `docs/agents/domain.md`.
+
+### Skill evals
+
+Skill changes are gated by the skill's evals. See `docs/agents/skill-evals.md`.
