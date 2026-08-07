@@ -1,0 +1,7 @@
+interface:
+  display_name: "Kaizen Codebase"
+  short_description: "Ship one low-risk codebase improvement"
+  default_prompt: "Use $kaizen-codebase to find and ship one low-risk codebase improvement."
+
+policy:
+  allow_implicit_invocation: false
