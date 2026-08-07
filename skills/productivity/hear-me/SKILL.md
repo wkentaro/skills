@@ -1,6 +1,6 @@
 ---
 name: hear-me
-description: Handles voice-dictated requests with a readback and targeted transcription checks, either once or for the current conversation.
+description: Checks voice-dictated requests with a readback and stays active in the current conversation until disabled.
 disable-model-invocation: true
 argument-hint: "[dictated request|on|off]"
 ---
@@ -14,14 +14,23 @@ Accept ordinary wording as given.
 
 ## Invocation
 
-Treat `on` or `off` as a control only when it is the entire argument. Reply to a control
-with only a confirmation of the new state.
+Match `on` and `off` without case sensitivity after trimming surrounding whitespace. Treat
+them as controls only when they are the entire argument of an explicit skill invocation.
+Reply to a control with only a confirmation of the new state.
 
-- No argument or `on`: Enable dictation mode for the current conversation. Apply the
-  protocol to each later user message until the mode is disabled.
-- `off`: Disable dictation mode. Treat later messages as normal text.
-- Any other non-empty argument: Apply the protocol to that request once. Preserve the
-  current mode state, so a later clarification is normal text when the mode is off.
+- No argument or `on`: Enable dictation mode for the current conversation. Reply `Hear Me is
+  on for this conversation.`
+- `off`: Disable dictation mode. Reply `Hear Me is off.`
+- Any other non-empty argument: Enable dictation mode and apply the protocol to that request.
+  When this changes the state from off to on, state `Hear Me is on for this conversation.`
+  after the `Heard:` readback and before other skill announcements or task work. Do not
+  repeat the state for a later request while the mode is already on.
+
+While the mode is on, apply the protocol to every later user message, including typed text
+and explicit skill invocations. Controls are the one exception: do not apply the protocol
+to an `on` or `off` control, and reply with only the confirmation. Only an explicit `off`
+control disables it. Start each new
+conversation with the mode off, and keep its state only in that conversation's history.
 
 ## Protocol
 
