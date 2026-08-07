@@ -1,0 +1,30 @@
+name: Recommit skill
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/recommit.yml"
+      - "skills/engineering/recommit/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/recommit.yml"
+      - "skills/engineering/recommit/**"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Workflow fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check shell syntax
+        run: bash -n skills/engineering/recommit/tests/workflow_test.sh
+      - name: Lint shell
+        run: shellcheck skills/engineering/recommit/tests/workflow_test.sh
+      - name: Run workflow fixtures
+        run: skills/engineering/recommit/tests/workflow_test.sh

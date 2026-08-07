@@ -1,0 +1,7 @@
+interface:
+  display_name: "Recommit"
+  short_description: "Reshape unmerged commits safely"
+  default_prompt: "Use $recommit to reshape this branch's unmerged commits."
+
+policy:
+  allow_implicit_invocation: true
