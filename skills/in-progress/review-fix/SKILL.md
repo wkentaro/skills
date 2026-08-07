@@ -1,11 +1,11 @@
 ---
 name: review-fix
-description: Run /code-review, /simplify, /brooks-review, /review, /ask-exemplar, and /zero-tech-debt on a change via parallel subagents, address the meaningful findings, fold the fixes into clean commits, and force-push with lease. Use when the user wants to review-and-fix a change before merge: uncommitted work, the current feature branch, or a GitHub PR / GitLab MR. Triggers include "review-fix", "review and fix this PR/MR", "polish this branch", or "run the reviews, address the suggestions, then force-push".
+description: 'Run /code-review, /simplify, /ask-exemplar, and /zero-tech-debt on a change via parallel subagents, address the meaningful findings, fold the fixes into clean commits, and force-push with lease. Use when the user wants to review-and-fix a change before merge: uncommitted work, the current feature branch, or a GitHub PR / GitLab MR. Triggers include "review-fix", "review and fix this PR/MR", "polish this branch", or "run the reviews, address the suggestions, then force-push".'
 ---
 
 # /review-fix — Review a change, address findings, commit clean, force-push
 
-Run six reviewers over a change, apply the meaningful suggestions, fold the fixes
+Run four reviewers over a change, apply the meaningful suggestions, fold the fixes
 into clean commits, and force-push with lease. Works on four kinds of target:
 
 - **Uncommitted changes** (no arg, dirty working tree) — apply fixes, commit. No push.
@@ -44,7 +44,7 @@ meaningful findings. Do not stop after the first pass, and do not ask the user t
 
 Each round:
 
-**1a. Run the six reviews in parallel (report-only subagents).** Spawn **six**
+**1a. Run the four reviews in parallel (report-only subagents).** Spawn **four**
 subagents in a single message so they run concurrently. Pin each reviewer's model per the
 **Model** column below: one correctness reviewer (`code-review`) runs on Opus as the bug
 anchor (a missed bug costs more than the tokens); the rest run on Sonnet (holds up fine,
@@ -63,16 +63,14 @@ this skill's directory) so the subagent reads the files directly.
 | --- | --- | --- |
 | code-review | opus | "Invoke the `/code-review` skill (high effort, no `--fix`, no `--comment`) on the current branch diff vs `<base>`. Do not modify, commit, or push anything. Return the meaningful findings as a numbered list: file:line, the issue, and the suggested change." |
 | simplify | sonnet | "Run the `/simplify` skill's analysis on the current branch diff vs `<base>`, but DO NOT write any files. Instead return the simplifications it would make as a numbered list: file:line, what to simplify, and the proposed edit." |
-| brooks-review | sonnet | "Invoke the `/brooks-review` skill on the current branch diff vs `<base>`. Do not modify any files. Return the findings as Symptom → Source → Consequence → Remedy." |
-| review | sonnet | "Invoke the `/review` skill on the current branch diff vs `<base>` (review the diff directly — do not assume a PR exists). Do not modify, comment, commit, or push anything. Return the meaningful findings as a numbered list: file:line, the issue, and the suggested change." |
 | ask-exemplar | sonnet | "Read the `ask-exemplar` skill at `<ask-exemplar-dir>` (SKILL.md, then REFERENCE.md when it applies) and run its Embedded Evaluation on the current branch diff vs `<base>`. Do not modify, commit, or push anything. Return the **Top Fixes** as a numbered list: the finding, the fix, the Confidence, and the tradeoff. Return exactly `No Top Fixes.` when clean." |
 | zero-tech-debt | sonnet | "Run the `/zero-tech-debt` skill's analysis on the current branch diff vs `<base>`, but DO NOT write any files. Instead return what it would rework within the diff's footprint as a numbered list: file:line, the dead compatibility path or accidental complexity, and the proposed edit." |
 
-Wait for all six to return.
+Wait for all four to return.
 
 Treat `No Top Fixes.` from `ask-exemplar` as a clean report.
 
-**1b. Triage findings → the meaningful set.** Merge and dedupe the six reports. Keep
+**1b. Triage findings → the meaningful set.** Merge and dedupe the four reports. Keep
 only what is worth a code change:
 
 - **Keep**: real correctness bugs, genuine simplifications/reuse (including dead
@@ -106,7 +104,7 @@ next round; do not commit while checks are red.
 
 - If this round kept **one or more** findings → go back to **1a**. The new round reviews
   the now-fixed code and catches issues the fixes introduced or exposed.
-- If this round kept **zero** findings (all six reviewers came back clean or
+- If this round kept **zero** findings (all four reviewers came back clean or
   drop-only) → the change is settled. Exit the loop and go to step 2.
 
 **Stop conditions to avoid spinning.** Cap at **5 rounds**. Also bail out early if you
@@ -156,11 +154,11 @@ say so.
 
 ## Notes
 
-- The six reviewers must stay report-only. If you ever let `/simplify`,
+- The four reviewers must stay report-only. If you ever let `/simplify`,
   `/zero-tech-debt`, or `/code-review --fix` write in a subagent, parallel runs corrupt
   each other's edits.
 - "Meaningful" is a judgment call, not a checklist. Defend the drops if asked.
-- The six reviewers (1a) are static — they cannot see bugs that only surface at runtime;
+- The four reviewers (1a) are static — they cannot see bugs that only surface at runtime;
   that is what the behavioral half of 1d exists to catch, not them.
 - If prior work was stashed to check out a PR/MR in step 0, remind the user it is stashed
   when you finish.
