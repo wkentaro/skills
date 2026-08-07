@@ -1,7 +1,6 @@
 ---
 name: process-issues
 description: Run one autonomous GitHub issue-triage tick and route issues through the canonical states.
-disable-model-invocation: true
 ---
 
 # Process issues (one tick)

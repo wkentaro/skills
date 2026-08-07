@@ -1,7 +1,6 @@
 ---
 name: implement-issues
 description: Implement one ready-for-agent GitHub issue end to end and open a reviewed pull request.
-disable-model-invocation: true
 ---
 
 # Implement issues (one tick)

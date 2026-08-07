@@ -1,7 +1,6 @@
 ---
 name: kaizen-codebase
 description: Run one autonomous, low-risk codebase improvement pass and open a pull request or escalation issue.
-disable-model-invocation: true
 ---
 
 # Kaizen codebase (one pass)
