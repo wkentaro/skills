@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ask Exemplar"
+  short_description: "Compare decisions and completed work with exemplars"
+  default_prompt: "Use $ask-exemplar to compare this Target with the Standard Finding and strongest supported Exemplars."
+
+policy:
+  allow_implicit_invocation: false

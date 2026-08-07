@@ -1,6 +1,6 @@
 ---
 name: review-fix
-description: Run /code-review, /simplify, /brooks-review, /review, /exemplar-review, and /zero-tech-debt on a change via parallel subagents, address the meaningful findings, fold the fixes into clean commits, and force-push with lease. Use when the user wants to review-and-fix a change before merge — on uncommitted work, the current feature branch, or a GitHub PR / GitLab MR. Triggers include "review-fix", "review and fix this PR/MR", "polish this branch", or "run the reviews, address the suggestions, then force-push".
+description: Run /code-review, /simplify, /brooks-review, /review, /ask-exemplar, and /zero-tech-debt on a change via parallel subagents, address the meaningful findings, fold the fixes into clean commits, and force-push with lease. Use when the user wants to review-and-fix a change before merge: uncommitted work, the current feature branch, or a GitHub PR / GitLab MR. Triggers include "review-fix", "review and fix this PR/MR", "polish this branch", or "run the reviews, address the suggestions, then force-push".
 ---
 
 # /review-fix — Review a change, address findings, commit clean, force-push
@@ -54,16 +54,23 @@ each one only *reports* findings — none of them writes files, commits, or push
 the single writer (1c); concurrent `/simplify` + `/code-review --fix` in one working tree
 would race on edits.
 
+Before you build the prompts, resolve `<ask-exemplar-dir>`: `ask-exemplar` sets
+`disable-model-invocation`, so a subagent cannot invoke it as a skill. Replace the
+placeholder with the absolute path of the `ask-exemplar` skill directory (a sibling of
+this skill's directory) so the subagent reads the files directly.
+
 | Subagent | Model | Prompt |
 | --- | --- | --- |
 | code-review | opus | "Invoke the `/code-review` skill (high effort, no `--fix`, no `--comment`) on the current branch diff vs `<base>`. Do not modify, commit, or push anything. Return the meaningful findings as a numbered list: file:line, the issue, and the suggested change." |
 | simplify | sonnet | "Run the `/simplify` skill's analysis on the current branch diff vs `<base>`, but DO NOT write any files. Instead return the simplifications it would make as a numbered list: file:line, what to simplify, and the proposed edit." |
 | brooks-review | sonnet | "Invoke the `/brooks-review` skill on the current branch diff vs `<base>`. Do not modify any files. Return the findings as Symptom → Source → Consequence → Remedy." |
 | review | sonnet | "Invoke the `/review` skill on the current branch diff vs `<base>` (review the diff directly — do not assume a PR exists). Do not modify, comment, commit, or push anything. Return the meaningful findings as a numbered list: file:line, the issue, and the suggested change." |
-| exemplar-review | sonnet | "Invoke the `/exemplar-review` skill on the current branch diff vs `<base>`. Do not modify, commit, or push anything. Return the **Top fixes** as a numbered list: the finding, the fix, and your confidence." |
+| ask-exemplar | sonnet | "Read the `ask-exemplar` skill at `<ask-exemplar-dir>` (SKILL.md, then REFERENCE.md when it applies) and run its Embedded Evaluation on the current branch diff vs `<base>`. Do not modify, commit, or push anything. Return the **Top Fixes** as a numbered list: the finding, the fix, the Confidence, and the tradeoff. Return exactly `No Top Fixes.` when clean." |
 | zero-tech-debt | sonnet | "Run the `/zero-tech-debt` skill's analysis on the current branch diff vs `<base>`, but DO NOT write any files. Instead return what it would rework within the diff's footprint as a numbered list: file:line, the dead compatibility path or accidental complexity, and the proposed edit." |
 
 Wait for all six to return.
+
+Treat `No Top Fixes.` from `ask-exemplar` as a clean report.
 
 **1b. Triage findings → the meaningful set.** Merge and dedupe the six reports. Keep
 only what is worth a code change:

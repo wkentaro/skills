@@ -1,0 +1,53 @@
+{
+  "skill_name": "ask-exemplar",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "A solo software maintainer must choose between time blocking and a daily priority list. Unplanned issue and review requests often arrive during the day. Which method should the maintainer use?",
+      "expected_output": "A Guidance Decision Brief that checks current evidence, distinguishes the Standard Finding from the Exemplars, compares observable criteria, and recommends one method.",
+      "expectations": [
+        "The output classifies the Standard Finding as a formal requirement, dominant convention, contested practice, or no Standard",
+        "The output selects one or two Exemplars based on current linked evidence rather than fame",
+        "The output compares both options with observable criteria",
+        "The output recommends one option and gives a non-numeric Confidence reason",
+        "The output states material Evidence Gaps and Coverage Limits"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Evaluate this completed Python change for a Linux and macOS CLI with Python 3.11+, one writer process, crash-safe configuration saves, and zero runtime dependencies:\n\n```python\ndef save_config(path: Path, data: dict[str, object]) -> None:\n    temporary_path = path.with_suffix(\".tmp\")\n    temporary_path.write_text(json.dumps(data))\n    temporary_path.rename(path)\n```",
+      "expected_output": "A standalone Evaluation Decision Brief that checks current primary sources, checks the code against observable criteria, and gives concrete fixes without changing files.",
+      "expectations": [
+        "The output gives linked primary evidence for the Standard Finding and Exemplars",
+        "The Evaluation table contains criterion, bar, current, and fix columns",
+        "Every reported gap has a concrete fix",
+        "Top Fixes are ranked and each includes a finding, fix, Confidence, and tradeoff",
+        "No Top Fix adds a runtime dependency, and any dependency-based option is named as a tension",
+        "The output does not claim to have modified the Target"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run an Embedded Evaluation of this completed CLI design: the command always prompts for confirmation and has no non-interactive flag or machine-readable output. Return only the Embedded Evaluation contract.",
+      "expected_output": "A compact numbered Top Fixes list that follows the Embedded Evaluation contract.",
+      "expectations": [
+        "The output is a numbered Top Fixes list whose fixes include a non-interactive path and machine-readable output",
+        "Each numbered item contains the finding, concrete fix, Confidence, and tradeoff",
+        "The output does not include the full Decision Brief",
+        "The output does not claim to have edited, committed, or pushed"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I am offline. Do not access the internet. Choose between two unpublished internal planning methods named Pulse-17 and Orbit-Blue. No descriptions or internal artifacts are available.",
+      "expected_output": "A Decision Brief that reports the Evidence Gap, avoids unsupported Standard and Exemplar claims, and asks only for information that would change the research.",
+      "expectations": [
+        "The output reports that current online evidence could not be checked",
+        "The output classifies the Standard Finding as undetermined because of the Evidence Gap",
+        "The output does not invent a Standard or Exemplar for the unpublished methods",
+        "The output labels Confidence as low and gives the reason",
+        "The output identifies the missing information needed for a Recommendation"
+      ]
+    }
+  ]
+}
