@@ -1,6 +1,13 @@
 ---
 name: review-fix
-description: Run /code-review, /simplify, /brooks-review, /review, /ask-exemplar, and /zero-tech-debt on a change via parallel subagents, address the meaningful findings, fold the fixes into clean commits, and force-push with lease. Use when the user wants to review-and-fix a change before merge: uncommitted work, the current feature branch, or a GitHub PR / GitLab MR. Triggers include "review-fix", "review and fix this PR/MR", "polish this branch", or "run the reviews, address the suggestions, then force-push".
+description: >-
+  Run /code-review, /simplify, /brooks-review, /review, /ask-exemplar, and
+  /zero-tech-debt on a change via parallel subagents, address the meaningful
+  findings, fold the fixes into clean commits, and force-push with lease. Use
+  when the user wants to review-and-fix a change before merge: uncommitted work,
+  the current feature branch, or a GitHub PR / GitLab MR. Triggers include
+  "review-fix", "review and fix this PR/MR", "polish this branch", or "run the
+  reviews, address the suggestions, then force-push".
 ---
 
 # /review-fix — Review a change, address findings, commit clean, force-push
