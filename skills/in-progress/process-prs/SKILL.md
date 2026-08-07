@@ -1,6 +1,7 @@
 ---
 name: process-prs
-description: "Run one PR-processing tick on the current repo's open pull requests, then stop. Finalize your own / agent-authored PRs (rebase-if-needed, /code-review then /review-fix if needed, /recommit, green CI), review community and bot PRs, and emit exactly one canonical recommend-* verdict label per PR. File follow-up and idea issues without blocking any merge. Does one tick then stops, so it composes with /loop for a recurring PR loop (e.g. `/loop /process-prs`, `/loop 1h /process-prs`). Never merges, never closes; the verdict is a recommendation, not an action. GitHub-only (uses `gh`). Use when the user wants to process, finalize, triage, or review open pull requests, set up a recurring PR-handling agent, or run one PR-processing pass."
+description: Run one GitHub pull-request processing tick and apply a review recommendation without merging.
+disable-model-invocation: true
 ---
 
 # Process PRs (one tick)

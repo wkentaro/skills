@@ -1,6 +1,7 @@
 ---
 name: setup-github-labels
-description: "Applies one small canonical GitHub label set to the current repo, so every repo you run it in speaks the same label vocabulary: an issue `type:` axis (bug/feature/task, mirroring GitHub Issue Types), the five whose-turn triage roles (needs-triage/needs-info/ready-for-agent/ready-for-human/wontfix), and a PR-verdict axis (recommend-merge/recommend-close/recommend-triage). This skill owns the GitHub label objects (name, color, description); `setup-matt-pocock-skills` owns the triage roles' agent wiring. Use when setting up labels on a repo, or after editing this skill's canonical tables. Invoke explicitly; it is not auto-triggered."
+description: Apply the canonical GitHub issue and pull-request label set to a repository.
+disable-model-invocation: true
 ---
 
 # Setup GitHub Labels

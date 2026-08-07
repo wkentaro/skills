@@ -1,6 +1,7 @@
 ---
 name: process-issues
-description: "Run one issue-triage tick on the current repo's open issues, then stop. Scan untriaged issues, classify them (type: bug/feature/task), reproduce bugs, and route each through the canonical triage state machine: needs-info / ready-for-agent (with an agent brief) / ready-for-human, or park a wontfix/duplicate/out-of-scope belief in needs-triage for the maintainer. Does one tick then stops, so it composes with /loop for a recurring issue loop (e.g. `/loop /process-issues`, `/loop 1h /process-issues`). Never closes an issue, never applies wontfix; those stay the maintainer's call. GitHub-only (uses `gh`). The autonomous sibling of the interactive /triage skill. Use when the user wants to triage, classify, or process open issues, prepare issues for AFK agents, or set up a recurring issue-triage agent."
+description: Run one autonomous GitHub issue-triage tick and route issues through the canonical states.
+disable-model-invocation: true
 ---
 
 # Process issues (one tick)
