@@ -1,0 +1,63 @@
+{
+  "skill_name": "writing-pull-requests",
+  "evals": [
+    {
+      "id": "no-hard-wrap",
+      "prompt": "Write the PR description for this change. The repo is github.com/example/pipeline. The branch replaces a dict-based record passed between the parser and the indexer with a frozen dataclass; the conversion happens once at the parser boundary; `timestamp = None` is a sentinel the existing fallback path already handled; the second normalization call was reordered to run before promotion, which is safe because it only reads base fields. The motivation is that issue #200 typed the field `list[Record]` while dicts still flowed through it at runtime. Output only the PR body markdown.",
+      "expected_output": "A short PR body whose every paragraph and list item sits on a single line, with blank lines between blocks and no newline inside any sentence.",
+      "expectations": [
+        "No paragraph or list item contains an internal newline (no hard-wrapping at ~72-100 columns).",
+        "The first sentence states why the change exists (finishing what #200 started), not what the diff shows.",
+        "The sentinel and the reorder each appear with an explicit safety resolution.",
+        "The body does not enumerate dataclass fields or restate mechanical changes visible in any hunk.",
+        "No `## Summary` header wrapping a single bullet that repeats the lead."
+      ]
+    },
+    {
+      "id": "necessity-test",
+      "prompt": "Review this draft PR description and rewrite it: 'This PR migrates the record type from dict to dataclass. Record is a frozen dataclass with six required fields: path, size, mtime, kind, digest, timestamp. All callers were updated from dict access to attribute access. Function signatures changed from dict to Record. No behavior change intended. This is a large change but please review carefully.' The diff is a mechanical rename sweep across 40 files; the PR finishes work started in #200. Output only the rewritten body.",
+      "expected_output": "A body of a few sentences that keeps only what the diff cannot say and cuts field enumeration, caller-update recap, signature recap, and the apology.",
+      "expectations": [
+        "The field enumeration is gone.",
+        "The enumerated recaps ('All callers were updated from dict access to attribute access', 'Function signatures changed from dict to Record') are gone; at most one half-sentence names the sweep's pattern.",
+        "The apology/framing sentence is gone.",
+        "The rewritten body is readable in one breath (roughly five sentences or fewer).",
+        "Every remaining paragraph sits on a single line with no internal newline."
+      ]
+    },
+    {
+      "id": "media-private-repo",
+      "prompt": "You have a local screenshot at /tmp/fix-proof.png that proves a rendering fix, and you are about to open a PR on a private GitHub repository. How do you get the screenshot inline into the PR description? State the route and the exact steps; do not actually run anything.",
+      "expected_output": "The user-attachments upload route via the token-authenticated uploads.github.com endpoint, with the binary kept out of the PR branch and the human drag-and-drop named as the fallback.",
+      "expectations": [
+        "The answer does not commit the screenshot to the PR branch.",
+        "The answer does not claim a raw.githubusercontent.com URL renders for viewers on a private repo.",
+        "The answer uploads via POST to uploads.github.com/user-attachments/assets with the gh auth token and the target repo's repository_id, then embeds the returned github.com/user-attachments/assets URL.",
+        "The answer notes the endpoint is undocumented and names the web-UI drag-and-drop as the fallback when the POST fails.",
+        "The answer does not present the curl route as the same endpoint the browser's drag-and-drop calls."
+      ]
+    },
+    {
+      "id": "media-video",
+      "prompt": "You recorded a 20-second screen capture at /tmp/demo.mp4 showing the fixed interaction, and you are about to open a PR on a public GitHub repository. How do you get the video playing inline in the PR description? State the route and the exact steps; do not actually run anything.",
+      "expected_output": "Upload via the token-authenticated user-attachments endpoint with content_type=video/mp4, then embed the returned URL as a bare line, since only user-attachments URLs render an inline player.",
+      "expectations": [
+        "The answer uploads via POST to uploads.github.com/user-attachments/assets with content_type=video/mp4 and the repo's repository_id.",
+        "The returned URL is embedded as a bare URL on its own line, not wrapped in image syntax.",
+        "The answer does not offer a raw URL, orphan-branch URL, or release-asset URL as a way to get an inline player.",
+        "The answer does not commit the video to the PR branch."
+      ]
+    },
+    {
+      "id": "media-orphan-fallback",
+      "prompt": "You have a local screenshot at /tmp/fix-proof.png for a PR on a public GitHub repository, and the team forbids undocumented API endpoints, so the user-attachments upload is off the table. How do you get the screenshot inline into the PR description using only documented git and gh primitives? State the exact commands; do not actually run anything.",
+      "expected_output": "The orphan assets-branch route: stage the file outside the checkout, build the orphan branch from a clean tree, return to the original branch by name, and embed a commit-SHA-pinned raw URL.",
+      "expectations": [
+        "The screenshot is copied outside the checkout before any branch surgery, and the sequence captures the current branch name first and returns to it by name (not `git checkout -`).",
+        "The answer embeds a commit-SHA-pinned raw URL and says to keep the assets branch permanently.",
+        "When covering an existing assets branch, the answer does not re-run `git checkout --orphan` or `git rm -rf .` on it.",
+        "The screenshot is not committed to the PR branch."
+      ]
+    }
+  ]
+}

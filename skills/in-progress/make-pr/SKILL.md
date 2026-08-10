@@ -49,22 +49,24 @@ gh pr view --json number,url 2>/dev/null
 
 **Assignee**: default to the git user (`gh api user --jq '.login'`).
 
-**Body**: read [DESCRIPTION-QUALITY.md](DESCRIPTION-QUALITY.md) before writing. Pick the smallest structure that carries the signal. Do NOT mechanically apply a fixed template; calibrate to the scope of the change.
+**Body**: invoke the `writing-pull-requests` skill before writing. Pick the smallest structure that carries the signal. Do NOT mechanically apply a fixed template; calibrate to the scope of the change.
 
 #### Body by scope
+
+These tiers fix the structure (headers, checklist shape); how much prose goes inside them is `writing-pull-requests`'s call.
 
 **Small change** (docs, single bugfix, dep bump, small refactor) — one motivation sentence, evidence if visual, one-item test plan. No `## Summary` header — the lead IS the summary.
 
 ```
-Follow-up to #144. The original example's inputs looked near-identical, so the
-diff panels offered no contrast; this rewrite picks an edit-detection scenario
-where each mode shows a distinct result.
+Follow-up to #144. The original example's inputs looked near-identical, so the diff panels offered no contrast; this rewrite picks an edit-detection scenario where each mode shows a distinct result.
 
-![diff](https://github.com/owner/repo/raw/<full-sha>/examples/assets/diff.jpg)
+![diff](https://raw.githubusercontent.com/owner/repo/<full-sha>/examples/assets/diff.jpg)
 
 ## Test plan
 - [x] `uv run python examples/diff.py --save` regenerates the asset
 ```
+
+The image above is an asset committed in the change itself, so a SHA-pinned raw URL is right on a public repo; on a private repo, and for any ad-hoc screenshot or video, use the media routes in `writing-pull-requests`.
 
 **Medium change** (new function, behavior change, multi-commit feature):
 
@@ -81,16 +83,6 @@ where each mode shows a distinct result.
 
 **Large change** (cross-cutting refactor, new subsystem) — add `## Why` with real architectural motivation; link the issue or design doc that authorized the work.
 
-#### Embedded images
-
-Use a commit-SHA-pinned raw URL so the image survives branch deletion after merge:
-
-```
-https://github.com/<owner>/<repo>/raw/$(git rev-parse HEAD)/<path>
-```
-
-Branch-pinned URLs (`raw/feature-branch/...`) 404 once the branch is deleted, leaving the archived PR description broken.
-
 #### Test plan calibration
 
 Each item should describe a check that actually gated the change. Boilerplate dilutes meaningful items.
@@ -98,14 +90,6 @@ Each item should describe a check that actually gated the change. Boilerplate di
 - **Docs-only**: one item, usually asset regen or render check. Don't pad with `make lint` / `pytest` for changes that don't touch lintable / testable code.
 - **Bugfix**: the new test that proves the fix + manual repro if applicable.
 - **Feature**: tests added + lint + manual verification.
-
-#### Anti-patterns to avoid
-
-- **Marketing words** — "headline", "deliberately", "robust", "elegantly", "sells". Cut them.
-- **Before/after framing on small PRs** — theater. The reviewer can compare against `main`.
-- **Restating code comments in the body** — descriptions are ephemeral; code comments persist. Don't duplicate.
-- **`## Why` sections without a real why** — if you can't add context the diff doesn't carry, skip the section.
-- **Rigid templates over signal density** — if a lean paragraph carries the meaning, don't wrap it in `## Summary` ceremony.
 
 ### 3. Push and create/update
 
