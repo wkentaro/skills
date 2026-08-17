@@ -1,8 +1,7 @@
 ---
 name: review-fix
 description: >-
-  Run /code-review, /simplify, /brooks-review, /review, /ask-exemplar, and
-  /zero-tech-debt on a change via parallel subagents, address the meaningful
+  Run a panel of review skills on a change via parallel subagents, address the meaningful
   findings, fold the fixes into clean commits, and force-push with lease. Use
   when the user wants to review-and-fix a change before merge: uncommitted work,
   the current feature branch, or a GitHub PR / GitLab MR. Triggers include
@@ -12,8 +11,11 @@ description: >-
 
 # /review-fix — Review a change, address findings, commit clean, force-push
 
-Run six reviewers over a change, apply the meaningful suggestions, fold the fixes
-into clean commits, and force-push with lease. Works on four kinds of target:
+Run every reviewer in the table below over a change, apply the meaningful suggestions,
+fold the fixes into clean commits, and force-push with lease. That table is the roster:
+adding or removing a reviewer is a row, and nothing else in this file counts them.
+
+Works on four kinds of target:
 
 - **Uncommitted changes** (no arg, dirty working tree) — apply fixes, commit. No push.
 - **Current feature branch** (no arg, commits ahead of `main`) — fold fixes, force-push.
@@ -51,8 +53,8 @@ meaningful findings. Do not stop after the first pass, and do not ask the user t
 
 Each round:
 
-**1a. Run the six reviews in parallel (report-only subagents).** Spawn **six**
-subagents in a single message so they run concurrently. Pin each reviewer's model per the
+**1a. Run the reviews in parallel (report-only subagents).** Spawn **one subagent per row
+of the table below**, all in a single message so they run concurrently. Pin each reviewer's model per the
 **Model** column below: one correctness reviewer (`code-review`) runs on Opus as the bug
 anchor (a missed bug costs more than the tokens); the rest run on Sonnet (holds up fine,
 saves the bulk of the spend across up to 5 rounds). You (the orchestrator) stay on the session model to
@@ -74,20 +76,21 @@ this skill's directory) so the subagent reads the files directly.
 | review | sonnet | "Invoke the `/review` skill on the current branch diff vs `<base>` (review the diff directly — do not assume a PR exists). Do not modify, comment, commit, or push anything. Return the meaningful findings as a numbered list: file:line, the issue, and the suggested change." |
 | ask-exemplar | sonnet | "Read the `ask-exemplar` skill at `<ask-exemplar-dir>` (SKILL.md, then REFERENCE.md when it applies) and run its Embedded Evaluation on the current branch diff vs `<base>`. Do not modify, commit, or push anything. Return the **Top Fixes** as a numbered list: the finding, the fix, the Confidence, and the tradeoff. Return exactly `No Top Fixes.` when clean." |
 | zero-tech-debt | sonnet | "Run the `/zero-tech-debt` skill's analysis on the current branch diff vs `<base>`, but DO NOT write any files. Instead return what it would rework within the diff's footprint as a numbered list: file:line, the dead compatibility path or accidental complexity, and the proposed edit." |
+| writing-code | sonnet | "Invoke the `/writing-code` skill and run its audit mode on the current branch diff vs `<base>`. Do not modify, commit, or push anything. Return its findings as that skill directs: the location, the rule cited by section and bold lead-in, and the concrete edit. Return exactly `No findings.` when clean." |
 
-Wait for all six to return.
+Wait for every reviewer to return. A reviewer's documented clean marker (`No findings.`,
+`No Top Fixes.`) counts as a clean report, not as a failure to answer.
 
-Treat `No Top Fixes.` from `ask-exemplar` as a clean report.
-
-**1b. Triage findings → the meaningful set.** Merge and dedupe the six reports. Keep
+**1b. Triage findings → the meaningful set.** Merge and dedupe the reports. Keep
 only what is worth a code change:
 
 - **Keep**: real correctness bugs, genuine simplifications/reuse (including dead
   compatibility paths with no current caller and accidental complexity), true design
   or maintainability problems with a concrete remedy.
-- **Drop**: stylistic nits that already match the repo's conventions, anything that
-  conflicts with the user's documented code style, speculative or out-of-scope
-  "improvements", and likely false positives.
+- **Drop**: stylistic nits that already match the repo's conventions, speculative or
+  out-of-scope "improvements", and likely false positives. Where another reviewer
+  conflicts with `writing-code`, `writing-code` wins: it is the documented house style,
+  and the others encode generic good practice.
 
 When a finding is borderline low value, prefer skipping it — surgical changes beat
 churn. Print the kept set and the dropped set (one line each) so the user sees the call.
@@ -113,7 +116,7 @@ next round; do not commit while checks are red.
 
 - If this round kept **one or more** findings → go back to **1a**. The new round reviews
   the now-fixed code and catches issues the fixes introduced or exposed.
-- If this round kept **zero** findings (all six reviewers came back clean or
+- If this round kept **zero** findings (every reviewer came back clean or
   drop-only) → the change is settled. Exit the loop and go to step 2.
 
 **Stop conditions to avoid spinning.** Cap at **5 rounds**. Also bail out early if you
@@ -163,11 +166,11 @@ say so.
 
 ## Notes
 
-- The six reviewers must stay report-only. If you ever let `/simplify`,
+- The reviewers must stay report-only. If you ever let `/simplify`,
   `/zero-tech-debt`, or `/code-review --fix` write in a subagent, parallel runs corrupt
   each other's edits.
 - "Meaningful" is a judgment call, not a checklist. Defend the drops if asked.
-- The six reviewers (1a) are static — they cannot see bugs that only surface at runtime;
+- The reviewers (1a) are static — they cannot see bugs that only surface at runtime;
   that is what the behavioral half of 1d exists to catch, not them.
 - If prior work was stashed to check out a PR/MR in step 0, remind the user it is stashed
   when you finish.
