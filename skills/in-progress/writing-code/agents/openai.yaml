@@ -1,0 +1,7 @@
+interface:
+  display_name: "Writing Code"
+  short_description: "Write or audit code against the house coding conventions"
+  default_prompt: "Use $writing-code to settle a style call while writing code, or to audit this change against the house coding conventions."
+
+policy:
+  allow_implicit_invocation: true

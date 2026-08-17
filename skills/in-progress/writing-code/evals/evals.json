@@ -1,0 +1,87 @@
+{
+  "skill_name": "writing-code",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a helper that takes a mask and returns the area it covers as a float. I was going to call it `label_area`. Is that a good name?",
+      "expected_output": "A direct answer that rejects the noun-only name and offers a verb-led alternative.",
+      "expectations": [
+        "The output rejects `label_area` and proposes a verb-led name such as `compute_label_area`",
+        "The output quotes the matching rule rather than only alluding to it",
+        "The output attributes the answer to the Verb-prefixed function names rule",
+        "The output does not invent conventions absent from the skill"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Audit this change against the house conventions:\n\n```python\n# tests/loader_test.py\nclass TestLoader:\n    def test_load(self):\n        from pathlib import Path\n\n        # call load_records to read the file and return the parsed rows\n        rows = sorted(load_records(Path(\"a.json\"), True))\n        # the copy is defensive: load_records hands back a cached list callers mutate\n        backup = list(rows)\n        assert len(backup) == 2\n```",
+      "expected_output": "A numbered finding list naming each broken rule and its concrete edit.",
+      "expectations": [
+        "The output flags the test class and proposes a plain `test_` function with fixtures",
+        "The output flags the deferred import and moves it to the top of the file",
+        "The output flags the first comment as restating what the code does, and deletes it",
+        "The output keeps the second comment as genuine reasoning but flags `load_records` named in its prose as stale-prone",
+        "The output flags the bare `True` and spells out the keyword argument",
+        "The output flags `list(rows)` and proposes `rows[:]`, since `sorted` makes `rows` statically a list",
+        "The output flags the missing `-> None` on the test signature",
+        "Each finding is a numbered entry citing its section and the rule's bold lead-in, followed by a concrete edit"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Check this against the house conventions. The helper has three callers elsewhere in the module.\n\n```python\n# labelme/_bbox.py\ndef _round_bbox_to_int(bbox: tuple[float, float, float, float]) -> tuple[int, int, int, int]:\n    x1, y1, x2, y2 = bbox\n    return (round(x1), round(y1), round(x2), round(y2))\n```",
+      "expected_output": "Exactly `No findings.`, because the snippet breaks no rule.",
+      "expectations": [
+        "The output reports exactly `No findings.`",
+        "The output does not propose inlining the helper, since it has several callers",
+        "The output does not manufacture findings from rules the snippet never touches"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Check this TypeScript against the house conventions:\n\n```ts\n// src/report.ts\nfunction _summarize(rows: Row[]) {\n  const total = rows.reduce((acc, r) => acc + r.count, 0);\n  const unique = new Set(rows.map((r) => r.id)).size;\n  return { total, unique };\n}\n\nexport function buildReport(rows: Row[], verbose: boolean) {\n  if (rows.length > 0) {\n    return render(_summarize(rows), verbose);\n  }\n  return null;\n}\n```",
+      "expected_output": "Findings covering the rules whose ideas travel, with the Python-only markers left alone.",
+      "expectations": [
+        "The output flags the missing explicit return types on both functions, since the annotation rule carries over",
+        "The output flags the inverted control flow and proposes an early return guard clause",
+        "The output does not raise the `_` prefix on `_summarize` at all, since the house leaves that marker in Python",
+        "The output does not propose inlining `_summarize`, whose name adds meaning and whose body is more than a line or two",
+        "The output flags the bare `verbose` argument at the `render` call and proposes a named options object, since the keyword-argument goal travels even though the syntax does not",
+        "The output does not invent TypeScript conventions absent from the skill"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Do the house conventions say anything about how to order the methods inside a class?",
+      "expected_output": "A plain statement that no rule covers method ordering, without inventing one.",
+      "expectations": [
+        "The output states that no rule covers method ordering",
+        "The output does not present a general best practice as one of the house rules",
+        "The output cites no rule as covering method ordering"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Audit this change against the house conventions:\n\n```python\n# labelme/_sync.py\nRETRY_LIMIT = 3\n\nclass Shape:\n    def __setitem__(self, index: int, point: Point) -> None:\n        self.points[index] = point\n\ndef sync_once(seen: list[int]) -> None:\n    for attempt in range(RETRY_LIMIT):\n        seen.append(attempt)\n```\n\n```python\n# tests/sync_test.py\ndef test_sync_once() -> None:\n    sync_once(MagicMock())\n```",
+      "expected_output": "A numbered finding list covering the misplaced constant, the container dunder, and the mocked list.",
+      "expectations": [
+        "The output flags `RETRY_LIMIT` living at module scope when only one function uses it, and moves it inside that function",
+        "The output requires the moved constant to be marked `Final` and named `UPPER_CASE`",
+        "The output flags `__setitem__` on `Shape`, a domain entity that merely holds points, and proposes a named edit method",
+        "The output flags mocking a plain `list` and proposes passing a real one"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Audit this change against the house conventions:\n\n```python\n# labelme/cli.py\nimport argparse, sys\n\nFORMATS = {\"json\": to_json, \"yaml\": to_yaml}\n\ndef _strip(text):\n    return text.strip()\n\ndef main():\n    args = argparse.ArgumentParser().parse_args()\n    sys.stdout.write(FORMATS[args.format](_strip(args.value)))\n```",
+      "expected_output": "A numbered finding list covering the combined import, the module-scope table, the trivial helper, and the missing annotations.",
+      "expectations": [
+        "The output flags `import argparse, sys` and splits it into one import per line",
+        "The output flags `FORMATS` at module scope and moves the table inside `main`",
+        "The output requires the moved table to be marked `Final`",
+        "The output flags `_strip` as a one-line single-caller helper and inlines it",
+        "The output flags the missing annotations on `main`"
+      ]
+    }
+  ]
+}
