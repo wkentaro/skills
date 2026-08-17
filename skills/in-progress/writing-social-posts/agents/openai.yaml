@@ -1,0 +1,7 @@
+interface:
+  display_name: "Writing Social Posts"
+  short_description: "Draft, order, and check social posts"
+  default_prompt: "Use $writing-social-posts to draft, order, or check this post."
+
+policy:
+  allow_implicit_invocation: true
