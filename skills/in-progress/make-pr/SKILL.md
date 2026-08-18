@@ -114,6 +114,17 @@ gh pr create --title "..." --body "..." --label "..." --assignee "..."
 gh pr edit <number> --title "..." --body "..." --add-label "..." --add-assignee "..."
 ```
 
+#### Stacked branches
+
+When this PR depends on another unmerged branch — `git log main..HEAD` carries commits that already belong to an open PR, or the work was split into an ordered chain of branches — manage the chain with the `gh stack` extension instead of hand-setting base branches:
+
+```bash
+gh stack init <bottom-branch> ... <top-branch>  # adopts existing branches, bottom to top
+gh stack submit --auto                          # pushes, creates or links the PRs, sets each base
+```
+
+`gh stack submit` points each PR at the branch below it and links them into a stack on GitHub; after a lower PR merges, `gh stack sync` rebases the rest. Each PR body still goes through step 2, with a "Stacked on #N; merge that first" line. An independent single branch takes the plain `gh pr create` path above.
+
 ### 4. Return the PR URL
 
 Always print the PR URL at the end so the user can click it.
