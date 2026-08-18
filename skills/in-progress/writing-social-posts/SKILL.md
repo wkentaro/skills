@@ -11,7 +11,8 @@ live in [`IMAGES.md`](IMAGES.md).
 
 Start where the work is. Drafting from scratch runs 1→5. Ordering an existing
 thread starts at 2. Refining finished copy runs 3→5. Checking copy that is ready
-to go out is step 5 alone.
+to go out runs the preservation gate in step 4, then step 5; reopen the wording
+only for a verified clarity or correctness defect.
 
 ## 1. Find the exemplar post first
 
@@ -61,6 +62,16 @@ answers the objection the one before it raises.
 One claim per sentence. State facts and let the reader supply the enthusiasm.
 The numbers carry the post; a setup line before them is load.
 
+For a build or progress post, consider a concrete three-to-five-word **theme
+line** followed by a blank line and the explanation. It is a title, not another
+claim: it lets a reader classify the post at a glance while the body carries the
+problem and solution. Use it when it makes the topic faster to scan; skip it
+when the opening sentence already does that job.
+
+> Automatic Git worktree hierarchy
+>
+> I use Herdr with worktrees, but every checkout looked like a separate project.
+
 Done when no sentence needs a second read to find its claim, and cutting any
 remaining sentence would lose a fact.
 
@@ -89,11 +100,24 @@ Three structural checks beyond the line-level tells:
 - **A fix propagates across platforms.** `can't` → `won't` was right on X and
   left the LinkedIn copy overclaiming the same fact for an hour.
 
+### Preserve authored roughness
+
+Use `/humanizer` as an audit, not a mandate to normalize the user's copy. The
+user's draft and writing samples are the source of truth for voice. Keep casual
+lowercase, fragments, parentheticals, uneven rhythm, and asides when they are
+clear and characteristic. Separate actual defects from details a copy editor
+could polish; changing the latter can make a human post sound generated.
+
+Final review is a **preservation gate**. Change wording only when it misstates a
+fact, obscures the claim, or breaks the platform. Offer optional stylistic
+alternatives separately. If the user prefers the rougher version, keep it and
+limit the remaining review to mechanics.
+
 Detector scores are noise on 60-word posts. Your own ear, read aloud, is the
 instrument.
 
-Done when each post has been checked against every tell row and all three
-structural checks, one at a time.
+Done when each post has been checked against every tell row, all three
+structural checks, and the preservation gate, one at a time.
 
 ## 5. Preflight
 
@@ -110,6 +134,10 @@ Mechanical, and worth running every time. Some of it is one `curl` away.
 - Shipping something installable: the install command resolves to the version
   being announced. Check the registry you publish to, not the tag — for PyPI,
   `curl -s https://pypi.org/pypi/<pkg>/json`.
+
+Run this checklist silently. Report failed or unverifiable items, not every
+successful check. When nothing blocks publishing, say the post is ready instead
+of reopening settled stylistic choices.
 
 Done when every bullet is checked against the real post, not assumed.
 
