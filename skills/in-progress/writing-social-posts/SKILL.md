@@ -50,12 +50,22 @@ they raise it. The git-hunk debut, as a worked example:
 | 4 | eval table | does it help? |
 | 5 | (none) | how do I adopt it? |
 
+For a quote post, treat the caption, attached media, and quoted post as one
+composition with one job per layer. Before drafting or reviewing the caption,
+inventory the claims the quote and media already carry. Let the quote carry
+context it already states, the media carry new evidence, and the caption answer
+the next unanswered objection. A self-quote can leave the what and how in the
+original post, show the result in a before/after image, and use the caption for
+why the change matters: "much easier to keep my bearings with several worktrees
+open at once." A label like "before/after" has no job because the image already
+says it.
+
 Lead with whatever a practitioner can *get* without pressing play. For a
 developer tool that is usually the command surface: it is self-evidently the
 pitch, and it is the post people screenshot.
 
-Done when every post has one job you can state in a few words, and each post
-answers the objection the one before it raises.
+Done when every post or quote-post layer has one job you can state in a few
+words, and each answers the next objection the preceding context raises.
 
 ## 3. Draft flat
 
