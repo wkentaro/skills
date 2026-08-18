@@ -1,0 +1,4 @@
+interface:
+  display_name: "Competitive Advantage"
+  short_description: "Find and strengthen durable advantages"
+  default_prompt: "Use $competitive-advantage to identify the strategy stack and test whether its advantages are defensible."
