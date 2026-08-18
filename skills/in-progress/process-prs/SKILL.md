@@ -164,9 +164,15 @@ do not re-finalize while checks are pending. Otherwise:
    - green → `recommend-merge`.
    - red, no prior agent fix-attempt on the PR → one fix-and-repush attempt, then
      leave it awaiting CI again.
-   - red, a prior agent fix-attempt already exists → `recommend-close` (a red
-     build is a nameable technical blocker, not a sound-code scope call) with the
-     failure quoted.
+   - red on a defect the PR **exposed** rather than introduced (the failing check
+     is new coverage this PR adds, and the failure does not trace to a change in
+     this PR) → `recommend-triage`, failure quoted, plus a spin-off issue for the
+     root cause. Landing new coverage that is red on a pre-existing bug is a
+     scope call — take it, narrow the matrix, or fix the bug first — not a
+     verdict the agent can make.
+   - red otherwise, a prior agent fix-attempt already exists → `recommend-close`
+     (a red build is a nameable technical blocker, not a sound-code scope call)
+     with the failure quoted.
 
    The one-attempt cap is derived from the PR's history, not stored: a **prior
    agent fix-attempt** = a commit the git user pushed to the branch after the
@@ -193,7 +199,8 @@ Review-only; the verdict is mechanical and `needs-info` never applies:
 
 - patch/minor bump, CI green → `recommend-merge`.
 - red CI → `recommend-close` (a failing bump is a nameable technical blocker),
-  failure quoted.
+  failure quoted, unless the bump merely **exposed** a latent bug rather than
+  broke the build, which is the same scope call as above → `recommend-triage`.
 - major version or breaking changelog, CI green → `recommend-triage` (a sound
   bump, but taking it is a scope call).
 
