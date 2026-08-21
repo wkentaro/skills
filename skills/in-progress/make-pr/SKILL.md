@@ -125,6 +125,10 @@ gh stack submit --auto                          # pushes, creates or links the P
 
 `gh stack submit` points each PR at the branch below it and links them into a stack on GitHub; after a lower PR merges, `gh stack sync` rebases the rest. Each PR body still goes through step 2, with a "Stacked on #N; merge that first" line. An independent single branch takes the plain `gh pr create` path above.
 
+Once a PR is in a stack, GitHub refuses to retarget it: `gh pr edit <n> --base <branch>` fails with `Cannot change the base branch because the pull request is part of a stack`. To insert, drop, or reorder a layer, run `gh stack unstack <stack-number>` first, redo the branches, then `gh stack init` and `gh stack submit --auto` again. Unstacking removes only the linkage — no PR is closed, recreated, or loses its body — so it is safe mid-review.
+
+`gh stack init` checks each branch out in its own worktree, and merging the stack can prune those worktrees underneath a running shell. Run stack commands from the main checkout, not from a worktree the stack itself manages.
+
 ### 4. Return the PR URL
 
 Always print the PR URL at the end so the user can click it.
