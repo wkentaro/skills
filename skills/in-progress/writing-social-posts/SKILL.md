@@ -9,10 +9,27 @@ Posting about work. The steps below run for any post; [By kind](#by-kind) says
 what changes between a launch and a progress note. Render mechanics and layout
 live in [`IMAGES.md`](IMAGES.md).
 
-Start where the work is. Drafting from scratch runs 1→5. Ordering an existing
+Start where the work is. Drafting from scratch runs 0→5. Ordering an existing
 thread starts at 2. Refining finished copy runs 3→5. Checking copy that is ready
 to go out runs the preservation gate in step 4, then step 5; reopen the wording
-only for a verified clarity or correctness defect.
+only for a verified clarity or correctness defect. After the post is live, run
+[Postflight](#6-postflight).
+
+## 0. Audience contract
+
+Fill one line before anything else:
+
+`[speaker/account] -> [primary reader] -> [person or product being discussed]`
+
+It decides the person of the copy. Second person is right only when the
+primary reader is the one the post describes; a founder writing to a
+professional audience about a product's users writes those users in third
+person. Do not assume the reader is the user because the post describes a
+product. The Labelme v7.1 LinkedIn draft opened with customer-facing "you"
+on a founder post and had to be redone; the contract there was
+`founder -> technical LinkedIn readers -> Labelme users`.
+
+Done when the line is written and the person of the draft follows from it.
 
 ## 1. Find the exemplar post first
 
@@ -20,8 +37,10 @@ Name a real post that already worked for something comparable, recent, from
 someone this audience respects. Copy its **shape** — post order, sentence
 lengths, where the link sits — and write your own words into it.
 
-Ask the user for the exemplar post; they know whose posts land with this
-audience.
+Check the project's own playbook first: if it names a prior post with the
+same job, that self-exemplar beats an external one (same audience, same
+voice). Otherwise ask the user for the exemplar post; they know whose posts
+land with this audience.
 Given a status URL, read the post with
 `curl -s "https://cdn.syndication.twimg.com/tweet-result?id=<POST_ID>&token=a"` —
 `x.com` itself is behind a login wall, and one call returns one post, so a thread
@@ -110,6 +129,20 @@ Three structural checks beyond the line-level tells:
 - **A fix propagates across platforms.** `can't` → `won't` was right on X and
   left the LinkedIn copy overclaiming the same fact for an hour.
 
+### Variants change structure, not words
+
+When the user asks for variants, each one changes the job or the shape:
+product observation, user narrative, technical mechanism, release-first,
+minimal. A set that differs by synonyms prolongs the review without giving
+the user a choice; reject it and regenerate.
+
+### Complete is not exhaustive
+
+"Go all in" and "don't hold anything back" mean: do not withhold a strong
+fact for a hypothetical later post. They do not override one post, one job.
+A fact that is true but off the story weakens it; cut it rather than
+parenthesize it.
+
 ### Preserve authored roughness
 
 Use `/humanizer` as an audit, not a mandate to normalize the user's copy. The
@@ -151,11 +184,24 @@ of reopening settled stylistic choices.
 
 Done when every bullet is checked against the real post, not assumed.
 
+## 6. Postflight
+
+Runs once the user supplies the live URL.
+
+- Read the live copy; the live post is now authoritative over every draft.
+- Confirm media rendered and the first comment (if planned) is there.
+- Sync the project's post artifact to the live copy, URL, media, and comment
+  when the project's rules authorize recording it.
+- Do not reopen settled wording without a verified problem.
+
+Done when the artifact and the live post agree.
+
 ## By kind
 
 | kind | shape | opens with | media |
 |---|---|---|---|
 | launch | thread on the objection ladder | what a practitioner gets, per step 2 | every asset you have |
+| launch, LinkedIn | single post: concrete observation or problem → mechanism or user effect → shipped proof | the observation, not the release | one native video or image |
 | progress / build-in-public | single post | what changed since last time | one clip or screenshot |
 | technical note | single post, or a short thread if it needs a diagram | the finding, setup after | code still, diagram, or none |
 | opinion | single post | the claim itself, first line | none — media dilutes a take |
@@ -178,7 +224,10 @@ after it, no hashtag, thread emoji, or call to action.
 - **Show HN** — the title must begin with `Show HN:`, which HN's guidelines
   require. Submit the URL alone, then post the prepared first comment
   immediately. Include the limitations section; it reads as confidence.
-- **LinkedIn** — standalone, never a thread. Links go in the first comment.
-  Narrative register is fine here and wrong on X. The "see more" cut falls
+- **LinkedIn** — standalone, never a thread. Link placement is presentation,
+  not a reach hack: one link in the body when click-through to one
+  destination is the post's job; the multi-link bundle (release, exact
+  install command, download) in the first comment when the body should stay
+  on its story. Narrative register is fine here and wrong on X. The "see more" cut falls
   around 140 chars on mobile, so the first two sentences have to carry the whole
   hook; check what survives the cut, not just the total length.
