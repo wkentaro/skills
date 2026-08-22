@@ -1,15 +1,15 @@
 ---
 name: review-fix
 description: >-
-  Run one caller-configured review-and-fix round on a working change. Use for
-  review-fix requests on uncommitted work, a branch, PR, or MR; accept an
-  optional target and free-form review brief, ask when the brief is unclear,
+  Run caller-configured review-and-fix rounds on a working change until clean.
+  Use for review-fix requests on uncommitted work, a branch, PR, or MR; accept
+  an optional target and free-form review brief, ask when the brief is unclear,
   and leave supported fixes uncommitted.
 ---
 
 # Review fix
 
-Run one bounded Review Round from a caller-owned Review Brief:
+Run Review Rounds until clean from a caller-owned Review Brief:
 
 ```text
 /review-fix [target] [free-form review brief]
@@ -64,7 +64,10 @@ skills to absolute directories so a Reviewer can read the skill directly even
 when model invocation is disabled. The runtime chooses models and reasoning
 effort; this skill carries no model matrix.
 
-## Run one Review Round
+## Run until clean
+
+Keep the resolved Review Policy unchanged across rounds. Each round uses fresh
+Reviewers against the target produced by the preceding round.
 
 1. Record the target's HEAD, status, and complete diff. Do not edit while
    Reviewers run.
@@ -89,17 +92,21 @@ effort; this skill carries no model matrix.
 8. Run the smallest relevant tests, lint, and type checks. Exercise a changed
    output surface directly when existing tests do not observe it. A red check
    or an unsafe repair makes the outcome `incomplete`.
+9. Record the round's Review Outcome. `clean` ends the run. `fixed` starts a new
+   Review Round at step 1. `incomplete` ends the run without further edits.
+
+Continue only while each `fixed` round changes the target and passes its checks.
+A repeated Verified Finding without new evidence, or any round that cannot make
+a supported repair, makes the outcome `incomplete` instead of cycling.
 
 ## Return the outcome
 
-Report the Review Brief, resolved Review Requests, reviewer provenance,
-Verified Findings, unverified claims, repairs, and checks, followed by exactly
-one Review Outcome:
+Report the Review Brief, resolved Review Requests, and each round's reviewer
+provenance, Verified Findings, unverified claims, repairs, checks, and Review
+Outcome. Finish with exactly one terminal outcome:
 
 - `clean`: no Verified Findings.
-- `fixed`: every Verified Finding was repaired and the checks passed.
 - `incomplete`: the requested policy could not finish safely.
 
-Leave all repairs uncommitted. Do not loop, commit, rebase, comment, or push.
-The caller may repeat only a `fixed` outcome with its own round budget, then use
-the repository's history and publication workflows.
+Leave all repairs uncommitted. Do not commit, rebase, comment, or push. The
+caller owns the repository's history and publication workflows.

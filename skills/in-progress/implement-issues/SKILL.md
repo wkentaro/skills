@@ -87,10 +87,8 @@ issue body is context); run the steps below in order:
 2. Get the **full test suite and lint/typecheck green**.
 3. Confirm **every acceptance criterion** in the brief is satisfied.
 4. Run `/review-fix specification compliance, correctness, and repository
-   standards`. Repeat the same Review Brief only after a `fixed` outcome, for at
-   most three rounds. `clean` passes the gate; `incomplete` or three `fixed`
-   rounds without `clean` aborts and demotes under step 4. A hand review does not
-   count.
+   standards`. `clean` passes the gate; `incomplete` aborts and demotes under
+   step 4. A hand review does not count.
 5. If the working tree is dirty, run `git-hunk skills get core logical-commits`
    and use `git-hunk` to commit the implementation and review repairs as logical
    commits. Then `/recommit` the branch into its final commit sequence.

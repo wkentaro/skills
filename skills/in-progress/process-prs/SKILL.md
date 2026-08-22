@@ -152,10 +152,9 @@ Run `gh pr checkout <N>`, then confirm the current branch matches the PR's
    - **Meaningful findings** (a real correctness or design fix, or several
      concerns at once) → run `/review-fix #<N> verify and repair these gate
      claims: <consolidated gate findings>`, substituting the actual report rather
-     than referring to it indirectly. Repeat that same Review Brief once after a
-     `fixed` outcome. Continue on `clean`; on `incomplete` or two `fixed` rounds
-     without `clean`, stop this PR for the tick and report the blocker without
-     publishing or emitting a verdict.
+     than referring to it indirectly. Continue on `clean`; on `incomplete`, stop
+     this PR for the tick and report the blocker without publishing or emitting a
+     verdict.
 3. If `/review-fix` left edits, run
    `git-hunk skills get core logical-commits` and use `git-hunk` to commit them.
    Then `/recommit` to reshape the branch into a clean, logical sequence.
