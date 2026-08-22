@@ -102,6 +102,11 @@ being iterated stays a **draft** (no verdict label).
 Skip the PR this tick if it is already awaiting CI from a prior tick (step 5) —
 do not re-finalize while checks are pending. Otherwise:
 
+**Check out the selected PR before any finalize step.** Require a clean
+Git-visible working tree; if it is dirty, stop this PR and report the blocker.
+Run `gh pr checkout <N>`, then confirm the current branch matches the PR's
+`headRefName`. Every Git and review step below operates on that checkout.
+
 1. **Rebase only if a fresh CI run against current `main` is actually needed.**
    A rebase forces a push, which re-triggers CI and costs a whole extra tick of
    waiting, so don't pay it reflexively. When CI runs on `pull_request` with a
@@ -120,7 +125,7 @@ do not re-finalize while checks are pending. Otherwise:
    git rev-list --count "$base"..origin/<defaultBranch>   # commits main gained since base
    ```
 
-   **Rebase** (then let the pipeline force-push, re-triggering CI) **iff any holds:**
+   **Rebase locally** (step 5 publishes it and re-triggers CI) **iff any holds:**
    - merge state is `DIRTY`/conflicting (a textual conflict to resolve), or
      `BEHIND` (branch protection requires up-to-date before merge);
    - `main`'s post-base files intersect the PR's changed files, a direct overlap,
@@ -133,34 +138,37 @@ do not re-finalize while checks are pending. Otherwise:
    **Otherwise skip the rebase entirely.** `main` moved only in files disjoint
    from the PR and within the cap, so the existing green still reflects the
    merged result; leave the branch untouched and let the PR be verdicted this
-   same tick (step 5). (If merge state is `UNKNOWN`, GitHub is still computing
+   same tick (step 6). (If merge state is `UNKNOWN`, GitHub is still computing
    mergeability; re-check next tick rather than guessing.)
-2. **Gate `/review-fix` behind a cheap `/code-review` pass. Don't pay the full
-   loop reflexively.** An own PR that is already non-draft has, by convention,
+2. **Gate `/review-fix` behind a cheap `/code-review` pass.** An own PR that is
+   already non-draft has, by convention,
    been through `/review-fix` before it was un-drafted, so re-running the full
-   loop (six reviewers, up to five rounds, plus a force-push that re-triggers CI
-   and costs another whole tick) is usually wasted motion. So first run a single
-   report-only `/code-review` at medium effort (no `--fix`) over the diff as a
-   safety net (the same cheap gate the community tier uses, and one of the six
-   reviewers `/review-fix` would run), then branch on what it finds:
+   review reflexively is usually wasted motion. First run a single report-only
+   `/code-review` at medium effort (no `--fix`) over the diff as the same cheap
+   safety net the community tier uses, then branch on what it finds:
    - **No meaningful findings** (clean, or only nits already matching repo
      conventions) → skip `/review-fix` entirely; the PR is already settled. Go to
      step 3.
    - **Meaningful findings** (a real correctness or design fix, or several
-     concerns at once) → escalate to `/review-fix`, which runs the bundled
-     reviewers, applies the meaningful fixes, folds them into clean commits, and
-     force-pushes with lease.
-3. `/recommit`: reshape into a clean, logical commit sequence.
+     concerns at once) → run `/review-fix #<N> verify and repair these gate
+     claims: <consolidated gate findings>`, substituting the actual report rather
+     than referring to it indirectly. Continue on `clean`; on `incomplete`, stop
+     this PR for the tick and report the blocker without publishing or emitting a
+     verdict.
+3. If `/review-fix` left edits, run
+   `git-hunk skills get core logical-commits` and use `git-hunk` to commit them.
+   Then `/recommit` to reshape the branch into a clean, logical sequence.
 4. `/verify`: only if the PR changes runtime behavior and a smoke is practical.
    `/verify` picks the method per project type (CLI invocation, server boot,
    library import, GUI launch); skip for docs/refactor/test-only PRs.
-5. Resolve CI **non-blocking**. If no push happened this tick (no rebase per
-   step 1, and `/review-fix` and `/recommit` each left the branch untouched), the
-   existing checks are authoritative: read them directly and verdict now without
-   waiting, applying the outcome rules below. Only a push made this tick puts the
-   PR into the awaiting-CI state; when its checks are pending, leave the PR
-   awaiting CI and move on, and a later tick applies the same rules. The outcome
-   rules:
+5. When the local branch differs from its remote after the rebase, repair, or
+   recommit steps, run `/make-pr` to push with lease and update the existing PR.
+   Skip it when there is nothing to publish.
+6. Resolve CI **non-blocking**. If step 5 had nothing to publish, the existing
+   checks are authoritative: read them directly and verdict now without waiting,
+   applying the outcome rules below. A push made this tick puts the PR into the
+   awaiting-CI state; when its checks are pending, leave the PR awaiting CI and
+   move on, and a later tick applies the same rules. The outcome rules:
    - green → `recommend-merge`.
    - red, no prior agent fix-attempt on the PR → one fix-and-repush attempt, then
      leave it awaiting CI again.
@@ -178,7 +186,7 @@ do not re-finalize while checks are pending. Otherwise:
    agent fix-attempt** = a commit the git user pushed to the branch after the
    first red CI, paired with its disclaimer-prefixed comment. Check the current
    CI outcome before the cap — a now-green PR takes the green branch regardless.
-6. Emit the verdict with a disclaimer-prefixed comment.
+7. Emit the verdict with a disclaimer-prefixed comment.
 
 ### Community PRs: review-only, no pushing
 

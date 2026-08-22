@@ -86,10 +86,12 @@ issue body is context); run the steps below in order:
    requires; respect any ADRs / `CONTEXT.md`.
 2. Get the **full test suite and lint/typecheck green**.
 3. Confirm **every acceptance criterion** in the brief is satisfied.
-4. `/review-fix` to a clean round (reviewers -> fixes -> re-verify; stop on a
-   clean round or on oscillation). Invoke the skill; a hand review of the diff
-   does not count.
-5. `/recommit` into a clean, logical commit sequence.
+4. Run `/review-fix specification compliance, correctness, and repository
+   standards`. `clean` passes the gate; `incomplete` aborts and demotes under
+   step 4. A hand review does not count.
+5. If the working tree is dirty, run `git-hunk skills get core logical-commits`
+   and use `git-hunk` to commit the implementation and review repairs as logical
+   commits. Then `/recommit` the branch into its final commit sequence.
 6. `/verify` whenever the change is behavioral and a smoke is practical (the
    skill picks the method per project type). This is the one conditional gate:
    skip it only when the change is non-behavioral (e.g. test-only or docs) or no

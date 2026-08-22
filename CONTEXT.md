@@ -1,7 +1,41 @@
 # Skills
 
 This context defines the language used to design skills in this repository. It
-currently covers the Ask Exemplar vocabulary.
+currently covers review orchestration and the Ask Exemplar vocabulary.
+
+## Review Orchestration
+
+**Review Brief**:
+The caller's free-form description of the concerns to examine for a target. It may name review skills or describe ad-hoc focuses.
+_Avoid_: Review arguments, reviewer prompt
+
+**Review Policy**:
+The caller-owned set of Review Requests resolved from a Review Brief. Ambiguity requires caller clarification; the review-and-fix skill never silently broadens or chooses the policy.
+_Avoid_: Reviewer roster, review panel, default reviews
+
+**Review Request**:
+One review concern in a Review Policy, expressed as a Leaf Review Skill invocation or an ad-hoc focus.
+_Avoid_: Review type, review lens
+
+**Reviewer**:
+A fresh, report-only subagent assigned exactly one Review Request. It does not delegate or modify the target.
+_Avoid_: Review worker, nested reviewer
+
+**Leaf Review Skill**:
+A named review skill that one Reviewer can execute directly without delegating or modifying the target. Only leaf review skills can be named in a Review Request.
+_Avoid_: Reviewer adapter, nested review skill
+
+**Review Round**:
+One bounded execution of a Review Policy: run its Reviewers, verify and aggregate their findings, apply supported fixes, and check the result. A review-fix invocation repeats fixed rounds with the same policy until a round is clean or incomplete.
+_Avoid_: Review loop
+
+**Verified Finding**:
+A review claim confirmed against the target, its specification, repository rules, or observable behavior. It retains its Reviewer provenance, and only Verified Findings are eligible for repair.
+_Avoid_: Reviewer opinion, suggestion
+
+**Review Outcome**:
+The status of a Review Round: `clean` when it found no Verified Findings, `fixed` when it applied and verified repairs, or `incomplete` when the requested Review Policy could not finish safely. A review-fix invocation continues after `fixed` and terminates on `clean` or `incomplete`.
+_Avoid_: Pass/fail, review verdict
 
 ## Ask Exemplar
 
