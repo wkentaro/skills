@@ -190,6 +190,9 @@ Runs once the user supplies the live URL.
 
 - Read the live copy; the live post is now authoritative over every draft.
 - Confirm media rendered and the first comment (if planned) is there.
+- Treat the live post as the preferred voice exemplar for future drafts from the
+  same author, including its punctuation, capitalization, line length, and list
+  style.
 - Sync the project's post artifact to the live copy, URL, media, and comment
   when the project's rules authorize recording it.
 - Do not reopen settled wording without a verified problem.
@@ -212,9 +215,12 @@ length. The rest default to one post, and a thread has to argue its way in.
 
 ## Voice
 
-Period rhythm. Sentence case in replies. Contextual lead phrases on links
-("Code:", "Eval harness:"). The post ends on its last claim — nothing tacked on
-after it, no hashtag, thread emoji, or call to action.
+Match the author's punctuation and capitalization from their writing samples or
+prior posts. Preserve omitted terminal punctuation in short lines and lists when
+it is part of their voice. With no author sample, use period rhythm and sentence
+case in replies. Use contextual lead phrases on links ("Code:", "Eval
+harness:"). The post ends on its last claim — nothing tacked on after it, no
+hashtag, thread emoji, or call to action.
 
 ## Platform mechanics
 
