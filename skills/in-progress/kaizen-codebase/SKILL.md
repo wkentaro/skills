@@ -99,9 +99,13 @@ the failure mode this skill exists to avoid.
 2. Apply the minimal change. Read the code before editing it; touch only what the
    change requires; respect any ADRs / `CONTEXT.md`.
 3. Get the **full test suite and lint/typecheck green**.
-4. `/review-fix` to a clean round (reviewers -> fixes -> re-verify; stop on a
-   clean round or on oscillation). Invoke the skill; a hand review does not count.
-5. `/recommit` into a clean, logical commit sequence.
+4. Run `/review-fix behavior preservation and unnecessary complexity`. Repeat
+   the same Review Brief only after a `fixed` outcome, for at most two rounds.
+   `clean` passes the gate; `incomplete` or two `fixed` rounds without `clean`
+   aborts and escalates under step 4. A hand review does not count.
+5. If the working tree is dirty, run `git-hunk skills get core logical-commits`
+   and use `git-hunk` to commit the improvement and review repairs as logical
+   commits. Then `/recommit` the branch into its final commit sequence.
 6. `/verify` whenever the change is behavioral and a smoke is practical (the skill
    picks the method per project type). Skip it only when the change is
    non-behavioral (e.g. test-only or docs) or no smoke is practical, and note the

@@ -1,176 +1,105 @@
 ---
 name: review-fix
 description: >-
-  Run a panel of review skills on a change via parallel subagents, address the meaningful
-  findings, fold the fixes into clean commits, and force-push with lease. Use
-  when the user wants to review-and-fix a change before merge: uncommitted work,
-  the current feature branch, or a GitHub PR / GitLab MR. Triggers include
-  "review-fix", "review and fix this PR/MR", "polish this branch", or "run the
-  reviews, address the suggestions, then force-push".
+  Run one caller-configured review-and-fix round on a working change. Use for
+  review-fix requests on uncommitted work, a branch, PR, or MR; accept an
+  optional target and free-form review brief, ask when the brief is unclear,
+  and leave supported fixes uncommitted.
 ---
 
-# /review-fix — Review a change, address findings, commit clean, force-push
+# Review fix
 
-Run every reviewer in the table below over a change, apply the meaningful suggestions,
-fold the fixes into clean commits, and force-push with lease. That table is the roster:
-adding or removing a reviewer is a row, and nothing else in this file counts them.
+Run one bounded Review Round from a caller-owned Review Brief:
 
-Works on four kinds of target:
-
-- **Uncommitted changes** (no arg, dirty working tree) — apply fixes, commit. No push.
-- **Current feature branch** (no arg, commits ahead of `main`) — fold fixes, force-push.
-- **GitHub PR** (`#1234`, `1234`, or a `.../pull/1234` URL) — check out, fix, force-push.
-- **GitLab MR** (a `.../merge_requests/1234` URL) — check out, fix, force-push.
-
-## Argument
-
-Optional. The target. If omitted, operate on the current branch and working tree.
-
-## Workflow
-
-### 0. Resolve the target into a local working state
-
-```bash
-git branch --show-current
-git status --short
-git log origin/main..HEAD --oneline
+```text
+/review-fix [target] [free-form review brief]
 ```
 
-- **No arg** — work on the current branch / working tree as-is.
-- **GitHub PR** (`#N`, bare `N`, or `github.com/.../pull/N`) — the working tree must be
-  clean first (`git status --short` empty); if dirty, stop and ask the user to stash or
-  commit. Then `gh pr checkout N`.
-- **GitLab MR** (`gitlab.../merge_requests/N`) — same clean-tree check, then
-  `glab mr checkout N`.
+Examples:
 
-Identify the base branch (usually `main`); the reviewers diff against it.
-
-### 1. Review-and-fix loop (repeat until a round is clean)
-
-This is a **loop**, not a one-shot. Keep cycling until a full review round surfaces no
-meaningful findings. Do not stop after the first pass, and do not ask the user to say
-"re-run" — the loop is the whole point of this skill.
-
-Each round:
-
-**1a. Run the reviews in parallel (report-only subagents).** Spawn **one subagent per row
-of the table below**, all in a single message so they run concurrently. Pin each reviewer's model per the
-**Model** column below: one correctness reviewer (`code-review`) runs on Opus as the bug
-anchor (a missed bug costs more than the tokens); the rest run on Sonnet (holds up fine,
-saves the bulk of the spend across up to 5 rounds). You (the orchestrator) stay on the session model to
-triage and apply fixes. They are **read-only**:
-each one only *reports* findings — none of them writes files, commits, or pushes. You are
-the single writer (1c); concurrent `/simplify` + `/code-review --fix` in one working tree
-would race on edits.
-
-Before you build the prompts, resolve `<ask-exemplar-dir>`: `ask-exemplar` sets
-`disable-model-invocation`, so a subagent cannot invoke it as a skill. Replace the
-placeholder with the absolute path of the `ask-exemplar` skill directory (a sibling of
-this skill's directory) so the subagent reads the files directly.
-
-| Subagent | Model | Prompt |
-| --- | --- | --- |
-| code-review | opus | "Invoke the `/code-review` skill (high effort, no `--fix`, no `--comment`) on the current branch diff vs `<base>`. Do not modify, commit, or push anything. Return the meaningful findings as a numbered list: file:line, the issue, and the suggested change." |
-| simplify | sonnet | "Run the `/simplify` skill's analysis on the current branch diff vs `<base>`, but DO NOT write any files. Instead return the simplifications it would make as a numbered list: file:line, what to simplify, and the proposed edit." |
-| brooks-review | sonnet | "Invoke the `/brooks-review` skill on the current branch diff vs `<base>`. Do not modify any files. Return the findings as Symptom → Source → Consequence → Remedy." |
-| review | sonnet | "Invoke the `/review` skill on the current branch diff vs `<base>` (review the diff directly — do not assume a PR exists). Do not modify, comment, commit, or push anything. Return the meaningful findings as a numbered list: file:line, the issue, and the suggested change." |
-| ask-exemplar | sonnet | "Read the `ask-exemplar` skill at `<ask-exemplar-dir>` (SKILL.md, then REFERENCE.md when it applies) and run its Embedded Evaluation on the current branch diff vs `<base>`. Do not modify, commit, or push anything. Return the **Top Fixes** as a numbered list: the finding, the fix, the Confidence, and the tradeoff. Return exactly `No Top Fixes.` when clean." |
-| zero-tech-debt | sonnet | "Run the `/zero-tech-debt` skill's analysis on the current branch diff vs `<base>`, but DO NOT write any files. Instead return what it would rework within the diff's footprint as a numbered list: file:line, the dead compatibility path or accidental complexity, and the proposed edit." |
-| writing-code | sonnet | "Invoke the `/writing-code` skill and run its audit mode on the current branch diff vs `<base>`. Do not modify, commit, or push anything. Return its findings as that skill directs: the location, the rule cited by section and bold lead-in, and the concrete edit. Return exactly `No findings.` when clean." |
-
-Wait for every reviewer to return. A reviewer's documented clean marker (`No findings.`,
-`No Top Fixes.`) counts as a clean report, not as a failure to answer.
-
-**1b. Triage findings → the meaningful set.** Merge and dedupe the reports. Keep
-only what is worth a code change:
-
-- **Keep**: real correctness bugs, genuine simplifications/reuse (including dead
-  compatibility paths with no current caller and accidental complexity), true design
-  or maintainability problems with a concrete remedy.
-- **Drop**: stylistic nits that already match the repo's conventions, speculative or
-  out-of-scope "improvements", and likely false positives. Where another reviewer
-  conflicts with `writing-code`, `writing-code` wins: it is the documented house style,
-  and the others encode generic good practice.
-
-When a finding is borderline low value, prefer skipping it — surgical changes beat
-churn. Print the kept set and the dropped set (one line each) so the user sees the call.
-
-**1c. Apply the accepted fixes (you are the only writer).** Read each file before editing
-it. Apply the kept findings as tight, surgical edits. Every changed line should trace to
-a kept finding — do not "improve" adjacent code. Leave the edits in the working tree;
-defer committing until step 2.
-
-**1d. Verify — fast checks *and* behavior.** Run the project's fast checks (tests / lint /
-type-check) for the files you touched (`ruff`, `ty`, and the relevant `pytest` here).
-Treat green as necessary, not sufficient: a passing suite says nothing about output no
-test asserts on. So when the diff touches an **output path** — help/usage text, rendered
-or formatted output, ANSI/rich markup, templates, serializers, log formatting — also *run*
-the affected surface and read the result, diffing against the base version's output where
-feasible. Deleting an escape/quote/encode/sanitize/validate call is the sharpest case: it
-reads as a clean simplification but is often a load-bearing guard, and only rendering shows
-the breakage. When you find such a bug, lock it with an assertion on the rendered output
-so these cheap checks catch a recurrence. Fix any red check or wrong render before the
-next round; do not commit while checks are red.
-
-**1e. Decide whether to loop again.**
-
-- If this round kept **one or more** findings → go back to **1a**. The new round reviews
-  the now-fixed code and catches issues the fixes introduced or exposed.
-- If this round kept **zero** findings (every reviewer came back clean or
-  drop-only) → the change is settled. Exit the loop and go to step 2.
-
-**Stop conditions to avoid spinning.** Cap at **5 rounds**. Also bail out early if you
-notice oscillation (a later round re-proposes an edit you deliberately dropped, or
-reverses a fix from an earlier round). If you hit the cap or detect oscillation before a
-clean round, stop, list what is still outstanding, and ask the user how to proceed
-instead of looping further.
-
-### 2. Commit clean
-
-- **Uncommitted target** (nothing ahead of base) — commit the fixes. Use the `git-hunk`
-  CLI to split into logical commits. Stop here: there is nothing to force-push.
-- **Branch / PR / MR target** (commits ahead of base) — fold each fix into the commit it
-  belongs to. `git commit --fixup` only captures *staged* changes, so stage each logical
-  group before committing it:
-
-  ```bash
-  git add <paths-for-this-group>                          # stage just this group's fix
-  git commit --fixup=<sha-of-the-commit-being-fixed>      # repeat per logical group
-  GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash --autostash <base>
-  ```
-
-  (To split different hunks of one file across separate fixups, use `git-hunk` to stage
-  at hunk granularity rather than whole files.) Interactive rebase is unavailable in this
-  environment; `GIT_SEQUENCE_EDITOR=true` runs the autosquash non-interactively. If the
-  autosquash stops on a merge conflict, resolve it and `git rebase --continue`; if that is
-  not clean, `git rebase --abort` and commit the fix as its own commit rather than leaving
-  the tree mid-rebase. If a fix is genuinely new behavior rather than a correction to an
-  existing commit, make it its own commit via `git-hunk` instead.
-
-Never add a `Co-authored-by` trailer.
-
-### 3. Confirm, then force-push with lease
-
-Force-pushing is hard to undo. **Stop and show the user**: the kept-findings summary,
-`git log <base>..HEAD --oneline`, and `git diff <base>..HEAD --stat`. Ask for explicit
-permission to push. Earlier approval of the overall task is **not** this permission.
-
-Only after the user says go:
-
-```bash
-git push --force-with-lease
+```text
+/review-fix over-engineering
+/review-fix #123 specification compliance and authorization boundaries
+/review-fix ponytail-review and writing-code
 ```
 
-For a fresh-from-`main` uncommitted target there is nothing to push — end at step 2 and
-say so.
+The brief chooses the review policy. This skill owns reviewer orchestration,
+evidence verification, repairs, and checks. It never supplies a default roster.
 
-## Notes
+## Resolve the request
 
-- The reviewers must stay report-only. If you ever let `/simplify`,
-  `/zero-tech-debt`, or `/code-review --fix` write in a subagent, parallel runs corrupt
-  each other's edits.
-- "Meaningful" is a judgment call, not a checklist. Defend the drops if asked.
-- The reviewers (1a) are static — they cannot see bugs that only surface at runtime;
-  that is what the behavioral half of 1d exists to catch, not them.
-- If prior work was stashed to check out a PR/MR in step 0, remind the user it is stashed
-  when you finish.
+Treat the leading argument as the target only when it unambiguously resolves as
+an existing Git ref, a PR or MR number in the current repository, or a PR or MR
+URL. Otherwise use the current branch and working tree as the target and treat
+the whole argument as the Review Brief.
+
+Resolve an explicit target into an editable local checkout without disturbing
+uncommitted work. A target that cannot be checked out safely makes the outcome
+`incomplete`. Determine the target's base from forge metadata, its upstream, or
+the repository's default branch, in that order.
+
+When the brief is absent, ask through native structured input what the review
+should focus on. Do not start reviewers or modify the target until the caller
+has supplied a brief.
+
+## Resolve the review policy
+
+A Reviewer is a fresh, report-only subagent assigned one Review Request.
+
+- Each explicitly named review skill creates one Review Request.
+- A named skill must be a Leaf Review Skill: it can perform the requested review
+  directly, without subagents or writes. Read its instructions during preflight
+  and return `incomplete` before dispatch when it is not a leaf.
+- When no skill is named, match the brief against installed Leaf Review Skills.
+  One unambiguous match uses that skill; no match creates one ad-hoc Reviewer
+  from the brief; several plausible matches require structured clarification.
+- Several concerns in one skill-free brief remain one ad-hoc Review Request.
+  Never split prose into an implicit panel.
+- Text around explicit skill names refines those requests. If it clearly adds a
+  separate, unassigned concern, ask whether it belongs to a named Reviewer or a
+  separate ad-hoc Reviewer.
+
+Preflight every Review Request before starting any Reviewer. Resolve named
+skills to absolute directories so a Reviewer can read the skill directly even
+when model invocation is disabled. The runtime chooses models and reasoning
+effort; this skill carries no model matrix.
+
+## Run one Review Round
+
+1. Record the target's HEAD, status, and complete diff. Do not edit while
+   Reviewers run.
+2. Dispatch one fresh subagent per Review Request, concurrently where possible.
+   Give each the same target, base, diff scope, and repository instructions.
+   A named-skill Reviewer reads that skill and its required references. An
+   ad-hoc Reviewer uses the Review Brief as its review criteria.
+3. Require every Reviewer to inspect and report only. It must not modify files,
+   delegate, commit, comment on a forge, or push. Each finding includes its
+   location, claim, evidence, and proposed remedy; a clean Reviewer says so.
+4. Wait for every Reviewer. If one fails or times out, or the target changed
+   during review, apply no orchestrator edits and return `incomplete` with the
+   failed request or changed state.
+5. Merge duplicate claims while retaining every Reviewer's provenance. Treat
+   each claim as a hypothesis: verify it independently against the exact source,
+   specification, repository rules, or observable behavior. Name claims that
+   could not be verified; they are not findings and never receive fixes.
+6. Let evidence resolve disagreements. Leave a Verified Finding unfixed when
+   competing remedies remain unresolved, and make the outcome `incomplete`.
+7. Apply every supported, non-conflicting repair as a tight edit. Do not expand
+   the target's scope or edit adjacent code without a Verified Finding.
+8. Run the smallest relevant tests, lint, and type checks. Exercise a changed
+   output surface directly when existing tests do not observe it. A red check
+   or an unsafe repair makes the outcome `incomplete`.
+
+## Return the outcome
+
+Report the Review Brief, resolved Review Requests, reviewer provenance,
+Verified Findings, unverified claims, repairs, and checks, followed by exactly
+one Review Outcome:
+
+- `clean`: no Verified Findings.
+- `fixed`: every Verified Finding was repaired and the checks passed.
+- `incomplete`: the requested policy could not finish safely.
+
+Leave all repairs uncommitted. Do not loop, commit, rebase, comment, or push.
+The caller may repeat only a `fixed` outcome with its own round budget, then use
+the repository's history and publication workflows.

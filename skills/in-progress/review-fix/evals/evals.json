@@ -1,0 +1,80 @@
+{
+  "skill_name": "review-fix",
+  "evals": [
+    {
+      "id": "missing-brief",
+      "prompt": "Use /review-fix on the current working tree. I supplied no arguments. For this evaluation, state the next observable action without accessing a repository.",
+      "expected_output": "A structured clarification for the missing Review Brief, with no automatic reviewers or mutations.",
+      "expectations": [
+        "The output asks through structured input what the review should focus on",
+        "The output does not select or suggest that it has started a default reviewer roster",
+        "The output does not claim to have edited, committed, rebased, commented, or pushed"
+      ]
+    },
+    {
+      "id": "explicit-leaf-skills",
+      "prompt": "Run `/review-fix #41 ponytail-review and writing-code`. For this evaluation, assume #41 resolves to an editable PR and both named skills are installed Leaf Review Skills that return clean reports; describe the resulting workflow and report without accessing the forge.",
+      "expected_output": "One bounded clean round with one fresh report-only Reviewer for each explicitly named leaf skill.",
+      "expectations": [
+        "The output resolves exactly two Review Requests, one for ponytail-review and one for writing-code",
+        "The output assigns each Review Request to a fresh report-only non-delegating Reviewer",
+        "The output reports a clean outcome after one round and does not loop",
+        "The output does not claim to commit, rebase, comment, push, or choose reviewer models"
+      ]
+    },
+    {
+      "id": "ad-hoc-brief",
+      "prompt": "Use `/review-fix authentication bypasses and secret leakage` on the current change. Assume no installed Leaf Review Skill unambiguously matches, and the Reviewer claims `auth.py:42 interpolates an untrusted tenant ID into SQL, enabling authentication bypass and secret leakage`; direct inspection disproves that claim. For this evaluation, describe the workflow and final report without modifying files.",
+      "expected_output": "One ad-hoc Reviewer covers the whole brief, and its disproved claim is reported as unverified with a clean outcome.",
+      "expectations": [
+        "The output creates exactly one ad-hoc Review Request rather than splitting the two concerns",
+        "The output treats the Reviewer claim as a hypothesis and independently checks it",
+        "The output names the disproved claim as unverified and does not fix it",
+        "The output reports clean because there are no Verified Findings"
+      ]
+    },
+    {
+      "id": "verified-repair",
+      "prompt": "Use `/review-fix unsafe temporary-file replacement` on the current change. Assume no installed Leaf Review Skill matches; the ad-hoc Reviewer reports one claim, direct inspection and a focused reproduction verify it, a surgical repair is available, and the relevant checks pass. For this evaluation, describe the workflow and final report without modifying files.",
+      "expected_output": "One ad-hoc Reviewer produces a claim that is independently verified, repaired, checked, and reported as fixed with the simulated repair left uncommitted.",
+      "expectations": [
+        "The output creates exactly one ad-hoc Review Request",
+        "The output independently verifies the Reviewer claim before accepting it as a Verified Finding",
+        "The output applies only the supported repair and runs the relevant checks",
+        "The output reports fixed and leaves the repair uncommitted",
+        "The output does not loop, rebase, comment, or push"
+      ]
+    },
+    {
+      "id": "reviewer-failure",
+      "prompt": "Use `/review-fix authorization boundaries` on the current change. Assume its single ad-hoc Reviewer times out and the target has not changed. For this evaluation, state the outcome without accessing a repository.",
+      "expected_output": "The failed Review Request produces an incomplete outcome before any orchestrator edit or Git action.",
+      "expectations": [
+        "The output identifies the timed-out Review Request",
+        "The output reports incomplete",
+        "The output applies no orchestrator edits or partial-review repairs",
+        "The output does not commit, rebase, comment, or push"
+      ]
+    },
+    {
+      "id": "ambiguous-routing",
+      "prompt": "Use `/review-fix security` on the current change. Assume two installed Leaf Review Skills are equally plausible matches: auth-review and secrets-review. For this evaluation, state the next action without running either skill.",
+      "expected_output": "A structured clarification between the plausible leaf skills before any Reviewer starts.",
+      "expectations": [
+        "The output asks through structured input which plausible review skill the caller intends",
+        "The output does not silently choose a skill or run both skills",
+        "The output does not modify the target"
+      ]
+    },
+    {
+      "id": "reject-non-leaf",
+      "prompt": "Use `/review-fix #41 code-review`. Assume #41 resolves, and inspection of code-review shows that it delegates to two subagents. For this evaluation, state the outcome without accessing the forge.",
+      "expected_output": "Preflight rejects the explicitly named non-leaf skill and returns incomplete before dispatch or mutation.",
+      "expectations": [
+        "The output identifies code-review as incompatible because it delegates",
+        "The output rejects the whole round before starting a Reviewer",
+        "The output reports incomplete and does not modify, commit, rebase, comment, or push"
+      ]
+    }
+  ]
+}
