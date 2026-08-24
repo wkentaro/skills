@@ -28,11 +28,11 @@
     {
       "id": "ad-hoc-brief",
       "prompt": "Use `/review-fix authentication bypasses and secret leakage` on the current change. Assume no installed Review Skill unambiguously matches, and the Reviewer claims `auth.py:42 interpolates an untrusted tenant ID into SQL, enabling authentication bypass and secret leakage`; direct inspection disproves that claim. For this evaluation, describe the workflow and final report without modifying files.",
-      "expected_output": "One ad-hoc Reviewer covers the whole brief, and its disproved claim is reported as unverified with a clean outcome.",
+      "expected_output": "One ad-hoc Reviewer covers the whole brief, and its disproved claim is rejected with a clean outcome.",
       "expectations": [
         "The output creates exactly one ad-hoc Review Request rather than splitting the two concerns",
         "The output treats the Reviewer claim as a hypothesis and independently checks it",
-        "The output names the disproved claim as unverified and does not fix it",
+        "The output records the disproved claim as rejected with the inspection evidence and does not fix it",
         "The output reports clean because there are no Verified Findings"
       ]
     },
@@ -43,10 +43,75 @@
       "expectations": [
         "The output creates exactly one ad-hoc Review Request",
         "The output independently verifies the Reviewer claim before accepting it as a Verified Finding",
-        "The output applies only the supported repair, runs the relevant checks, and records the first round as fixed",
-        "The output starts a second round with a fresh Reviewer and the unchanged Review Policy",
+        "The output passes the Synthesis Gate, applies only the supported repair, passes the Repair Gate, and records the first round as fixed",
+        "The output starts a second Full round with a fresh Reviewer because the one-request impacted set is the complete unchanged Review Policy",
         "The output reports clean after the second round and leaves the repair uncommitted",
         "The output does not start a third round, rebase, comment, or push"
+      ]
+    },
+    {
+      "id": "scope-contract-synthesis",
+      "prompt": "Use `/review-fix #41 license handoff correctness`. Assume #41 and repository docs establish that the intended behavior passes a license token only to the owned Labelme app process, the canonical term is `Labelme app`, the owned boundary is the launcher-to-app handoff, checksum and retry hardening are explicit non-goals, and a local verification command exists. The ad-hoc Reviewer reports two claims: the token leaks to an unrelated child process, which direct inspection verifies, and the change should add checksum/retry hardening and rename the concept to `paid desktop`. A surgical environment-boundary repair exists, its checks pass, and a fresh Full Reviewer reports clean. Simulate the workflow and final report without modifying actual files.",
+      "expected_output": "The Scope Contract controls synthesis: the verified leak receives the smallest repair, while out-of-scope hardening and invented terminology are rejected and retained in the Claim Ledger.",
+      "expectations": [
+        "The Scope Contract records the intended behavior, canonical term, owned boundary, explicit non-goals, and required verification",
+        "The verified leak claim is tied to the Scope Contract and accepted with its Reviewer provenance",
+        "The Synthesis Gate rejects checksum/retry hardening and `paid desktop` as scope expansion rather than defects",
+        "The output applies the smallest environment-boundary repair and runs the required verification",
+        "The Claim Ledger progresses the leak through accepted-pending, accepted-repaired, and verified-closed while retaining the rejected remedy reason",
+        "A fresh Full round reports clean and the downstream handoff says the repair remains uncommitted"
+      ]
+    },
+    {
+      "id": "ci-infrastructure-classification",
+      "prompt": "Use `/review-fix #41 CI verification`. Assume the Full Reviewer reports no claims. Every GitHub Actions check is red, but inspection shows every job executed zero steps and carries the same billing or spending-limit annotation. The closest safe local lint and test equivalents pass. For this evaluation, simulate the workflow and final report without accessing the forge or modifying files.",
+      "expected_output": "The remote failures are classified as infrastructure or account failures, local equivalents provide bounded evidence, and the report never claims remote CI passed.",
+      "expectations": [
+        "The output inspects job steps and annotations before classifying the red checks",
+        "The output classifies the failures as infrastructure or account failures rather than code or test failures",
+        "The output records the passing local lint and test equivalents",
+        "The output explicitly reports remote CI as unavailable and does not call it passed",
+        "The Full round may report clean because it has no Verified Findings",
+        "The downstream handoff includes the CI classification and verification limitation"
+      ]
+    },
+    {
+      "id": "adaptive-middle-round",
+      "prompt": "Use `/review-fix` with no arguments. Assume the first Full round runs the Default Review Policy and only writing-code reports a Verified Finding. Its surgical repair changes only code-style concerns and passes the Repair Gate. A fresh writing-code Reviewer reports no claims in the Delta round, then every fresh Reviewer in the Final Full round reports clean. For this evaluation, simulate the workflow and final report without modifying actual files.",
+      "expected_output": "The run narrows its middle round to writing-code, then requires a clean five-request Final Full round before reporting clean.",
+      "expectations": [
+        "The first Full round dispatches all five Default Review Policy requests",
+        "The repair passes a Repair Gate that rechecks the finding, sibling paths, and relevant checks",
+        "The Delta round dispatches only a fresh writing-code Reviewer and explains why the other four requests are not impacted",
+        "The output states that the authoritative five-request Review Policy remains unchanged",
+        "The Final Full round dispatches all five requests with fresh Reviewers",
+        "The output reports clean only after the Final Full round and leaves the repair uncommitted"
+      ]
+    },
+    {
+      "id": "observable-claim-routing",
+      "prompt": "Use `/review-fix canvas flicker` on the current change. Assume no installed Review Skill matches. The one ad-hoc Reviewer reports that the canvas may flicker, source inspection cannot decide the claim, and an in-scope desktop QA capability is available. Direct desktop QA does not reproduce flicker. For this evaluation, describe the workflow and final report without accessing a repository or desktop.",
+      "expected_output": "The observable claim is routed once to desktop QA, recorded in the Claim Ledger, and receives no repair before a clean outcome.",
+      "expectations": [
+        "The output creates exactly one ad-hoc Review Request for the whole brief",
+        "The source-indeterminate claim is routed to the smallest available in-scope direct check",
+        "The Claim Ledger retains the Reviewer provenance and desktop QA evidence",
+        "The output does not treat the unreproduced claim as a Verified Finding or apply a repair",
+        "The output reports the claim once rather than redispatching it as a new claim",
+        "The Full round reports clean because no Verified Finding remains"
+      ]
+    },
+    {
+      "id": "observable-positive-synthesis",
+      "prompt": "Use `/review-fix canvas flicker` on the current change. Assume no installed Review Skill matches. The ad-hoc Reviewer reports a source-indeterminate flicker claim and proposes broad repaint hardening. The smallest in-scope desktop QA check reproduces flicker only when transform operations are ordered incorrectly. A surgical ordering repair exists, its checks pass, and a fresh Full Reviewer reports clean. Simulate the workflow and final report without accessing a repository or desktop.",
+      "expected_output": "Positive direct evidence returns through the Synthesis Gate, which rejects broad hardening and selects the smallest verified repair before a fresh Full round reports clean.",
+      "expectations": [
+        "The output routes the source-indeterminate claim to the direct desktop QA check",
+        "The positive reproduction becomes evidence for a Verified Finding",
+        "The newly verified claim passes the Synthesis Gate before any edit",
+        "The Synthesis Gate rejects broad repaint hardening and selects the surgical ordering repair",
+        "The repair passes the Repair Gate and progresses through the Claim Ledger states",
+        "A fresh Full round reports clean and the repair remains uncommitted"
       ]
     },
     {
