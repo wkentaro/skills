@@ -59,7 +59,9 @@ work it requires. Every agent in the tree inherits the same report-only boundary
   report-only.
 - When no skill is named, match the brief against installed Review Skills.
   One unambiguous match uses that skill; no match creates one ad-hoc Reviewer
-  from the brief; several plausible matches require native structured input.
+  from the brief; several plausible matches require native structured input to
+  select one. Offer a multi-skill panel only when the caller explicitly asks for
+  multiple Review Requests.
 - Several concerns in one skill-free brief remain one ad-hoc Review Request.
   Never split prose into an implicit panel.
 - Text around explicit skill names refines those requests. If it clearly adds a
@@ -87,18 +89,53 @@ mode narrows write-capable skills to report-only evaluation.
 | `zero-tech-debt` | Analysis only |
 | `writing-code` | Audit mode |
 
+## Establish the scope contract
+
+Before the first round, derive a compact Scope Contract from the user's brief,
+the target's issue or PR, repository terminology, repository instructions, and
+relevant durable docs. Record the intended behavior, canonical terms, owned
+dependency or module boundary, explicit non-goals, and required verification.
+
+A defect claim must protect a Scope Contract clause or a concrete repository
+standard and name a consequence in the reviewed change. Record unsupported
+observations as suggestions, not Verified Findings or repair work.
+
 ## Run until clean
 
-Keep the resolved Review Policy unchanged across rounds. Each round uses fresh
-Reviewers against the target produced by the preceding round.
+Keep the resolved Review Policy authoritative across rounds. A Full Review
+Round dispatches every Review Request; a Delta Review Round dispatches only the
+Impacted Review Requests. The first round is Full, and `clean` requires a later
+Full round whenever any repair changed the target.
+
+Maintain two compact ledgers in orchestration state, never in the target:
+
+- The Run Ledger records each round's scope, HEAD, status, diff hash, Reviewer
+  Tree identities and slot reservations, reports, target-mutation result,
+  repairs, checks, and CI classification.
+- The Claim Ledger keys each claim by location and meaning, and records its
+  Scope Contract or repository-standard basis, provenance, evidence, required
+  validation, and one finding state: accepted-pending, accepted-repaired,
+  rejected with reason, unverified with evidence gap, or verified-closed. Record
+  each proposed remedy separately with its provenance and disposition: accepted,
+  rejected with reason, or superseded with replacement. Merge repeated claims
+  without erasing remedy decisions. Reconsider a rejected or superseded remedy
+  only when new evidence answers its recorded reason.
+
+After a repair, derive the Impacted Review Requests from the repair diff. Include
+every request that reported an accepted claim and every request whose criteria
+cover the changed files, interfaces, sibling paths, or behavior. Ambiguity widens
+the set. When that set is the complete Review Policy, the next round is Full.
 
 1. Record the target's HEAD, status, and complete diff. Do not edit while
    Reviewers run.
-2. Dispatch one fresh top-level Reviewer per Review Request, concurrently where
+2. Select a Full or Delta round and record why each request is included. Dispatch
+   one fresh top-level Reviewer per included Review Request, concurrently where
    the preflighted nesting budget allows. Give each tree the same target, base,
-   diff scope, and repository instructions. A named-skill Reviewer reads and
-   follows that skill and its required references; an ad-hoc Reviewer uses the
-   Review Brief as its review criteria.
+   diff scope, Scope Contract, Claim Ledger, and repository instructions. Mark
+   ledger conclusions as prior evidence, not authority: every fresh Reviewer
+   independently inspects the current target and may challenge them. A
+   named-skill Reviewer reads and follows that skill and its required references;
+   an ad-hoc Reviewer uses the Review Brief as its review criteria.
 3. Require every Reviewer Tree to inspect and report only. A Composite Review
    Skill delegates only where required and passes the target context and
    report-only boundary to every descendant. A Reviewer executing a Leaf Review
@@ -108,36 +145,64 @@ Reviewers against the target produced by the preceding round.
 4. Wait for every Reviewer Tree. If any agent fails or times out, or the target
    changed during review, apply no orchestrator edits and return `incomplete`
    with the failed request or changed state.
-5. Merge duplicate claims while retaining every Reviewer's provenance. Treat
-   each claim as a hypothesis: verify it independently against the exact source,
-   specification, repository rules, or observable behavior. Name claims that
-   could not be verified; they are not findings and never receive fixes.
-6. Let evidence resolve disagreements. Leave a Verified Finding unfixed when
-   competing remedies remain unresolved, and make the outcome `incomplete`.
-7. Apply every supported, non-conflicting repair as a tight edit. Do not expand
-   the target's scope or edit adjacent code without a Verified Finding.
-8. Run the smallest relevant tests, lint, and type checks. Exercise a changed
-   output surface directly when existing tests do not observe it. A red check
-   or an unsafe repair makes the outcome `incomplete`.
-9. Record the round's Review Outcome. `clean` ends the run. `fixed` starts a new
-   Review Round at step 1. `incomplete` ends the run without further edits.
+5. Route an observable claim that source inspection cannot decide to the
+   smallest in-scope direct check. When that check is unavailable, retain one
+   automation gap instead of redispatching the same claim as new. Claims that
+   remain unverified are not findings and never receive fixes.
+6. Pass the Synthesis Gate before editing. Merge claims by root cause while
+   retaining every Reviewer's provenance; independently verify each hypothesis
+   against the exact source, Scope Contract, repository standards, or observable
+   behavior; and resolve conflicting remedies. Test each proposed remedy against
+   the contract, likely regression paths, and sibling callers. Reject speculative
+   hardening and scope expansion, then batch compatible smallest root-cause
+   repairs. An unresolved remedy conflict makes the outcome `incomplete`.
+7. Apply the synthesized repair batch as tight edits. Do not expand the target's
+   scope or edit adjacent code without a Verified Finding.
+8. Pass the Verification Gate before recording any outcome by running the Scope
+   Contract's required verification and the smallest relevant tests, lint, and
+   type checks. Exercise a changed output surface directly when existing tests do
+   not observe it. After a repair, this is the Repair Gate: also independently
+   confirm each repaired claim is absent and inspect sibling paths sharing its
+   root cause. A code or test failure, unmet required verification, or unsafe
+   repair makes the outcome `incomplete`.
+   Classify each non-successful remote CI result as a code or test failure,
+   infrastructure or account failure, cancelled or superseded run, or unavailable
+   evidence by inspecting executed steps and annotations. When no steps ran for
+   an infrastructure reason, run the closest safe local equivalents and report
+   remote CI as unavailable, never passed. Infrastructure-only CI does not block
+   `clean` when those local equivalents satisfy the required verification.
+9. Record the round's Review Outcome. A Full round with no Verified Findings is
+   `clean`. A repaired round is `fixed` and starts the round selected from the
+   Impacted Review Requests: Full when the set is the complete Review Policy,
+   Delta otherwise. A Delta round with no Verified Findings is
+   `ready-for-full-review` and starts a Full round. `incomplete` ends the run
+   without further edits.
 
-Continue only while each `fixed` round changes the target and passes its checks.
-A repeated Verified Finding without new evidence, or any round that cannot make
-a supported repair, makes the outcome `incomplete` instead of cycling.
+Continue only while each `fixed` round changes the target and passes the Repair
+Gate. A repeated Verified Finding without new evidence, or any round that cannot
+make a supported repair, makes the outcome `incomplete` instead of cycling.
 
 ## Return the outcome
 
 Report whether the Review Policy was default or caller-supplied, the resolved
-Review Requests, each round's full Reviewer Tree provenance, Verified Findings,
-unverified claims, repairs, checks, and Review Outcome. Finish with exactly one
-terminal outcome. For each Composite Review Skill, provenance names the
-top-level Reviewer and every descendant role, and records that preflight
-accepted the tree with enough agent capacity. State the exact Review Request
-count, identify the fresh top-level Reviewer dispatched for each request, and
-for every later round confirm that it reused the same Review Policy.
+Review Requests, Scope Contract, each round's scope and Reviewer Tree provenance,
+Claim Ledger states, Verified Findings, rejected claims and remedies, unverified
+claims and evidence gaps, superseded remedies, automation gaps, repairs,
+Verification and Repair Gates, checks and CI classifications, and Review Outcome.
+Finish with exactly one terminal outcome. For each Composite Review Skill,
+provenance names the top-level Reviewer and every descendant role, and records
+that preflight accepted the tree with enough agent capacity. State the exact
+Review Request count, identify the fresh top-level Reviewer dispatched for each
+included request, and explain each Delta subset while confirming that the
+authoritative Review Policy remained unchanged.
 
-- `clean`: no Verified Findings.
+End with a compact downstream handoff containing the target and base refs, final
+HEAD and diff hash, terminal outcome, uncommitted repair summary, checks and CI
+classifications, rejected and unverified claims, automation gaps, and Reviewer
+Tree provenance. This handoff is the sole input later history or publication
+skills need from this run.
+
+- `clean`: a Full round on the complete current diff has no Verified Findings.
 - `incomplete`: the requested policy could not finish safely.
 
 Leave all repairs uncommitted. Do not commit, rebase, comment, or push. The
