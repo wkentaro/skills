@@ -1,0 +1,40 @@
+{
+  "skill_name": "harvest-sessions",
+  "evals": [
+    {
+      "id": "empty-pass",
+      "prompt": "Use $harvest-sessions. Assume the secondbrain working tree is clean and the candidate listing contains zero sessions. For this evaluation, describe the actions and final report without changing files or external state.",
+      "expected_output": "A successful empty pass reports zero sessions judged, advances the watermark, and creates no branch, commit, issue, or pull request.",
+      "expectations": [
+        "The output treats zero candidates as a successful run rather than manufacturing a capture",
+        "The output advances the watermark from the tick snapshot",
+        "The output reports that zero sessions were judged",
+        "The output creates no branch, commit, issue, or pull request"
+      ]
+    },
+    {
+      "id": "one-durable-capture",
+      "prompt": "Use $harvest-sessions. Assume two listed sessions: `~/.codex/sessions/2026/08/24/root-cause.jsonl` establishes a root cause that is absent from the repository, while `~/.codex/sessions/2026/08/24/code-change.jsonl` only describes code already present at HEAD. Assume secondbrain is clean, an existing page covers the root-cause topic, and opening a pull request succeeds. For this evaluation, simulate the actions and final report without changing actual files or external state.",
+      "expected_output": "The run rejects the reconstructable session, edits the existing secondbrain page for the durable root cause, opens one auditable pull request, and advances the watermark only after the pull request succeeds.",
+      "expectations": [
+        "The output judges both sessions and captures only the durable fact that cannot be reconstructed from HEAD",
+        "The output edits the existing page instead of creating a duplicate and cites the source transcript path",
+        "The output rechecks captured text for secrets and unnecessary personal data before committing",
+        "The output creates a harvest/YYYY-MM-DD branch and one pull request whose body reports the capture and judged and rejected counts",
+        "The output advances the watermark only after the pull request opens",
+        "The output does not modify the source repositories represented by the transcripts"
+      ]
+    },
+    {
+      "id": "failed-publication",
+      "prompt": "Use $harvest-sessions. Assume one session survives the capture test, secondbrain is clean, the capture is committed on a harvest branch, and opening the pull request fails. For this evaluation, simulate the final report without changing actual files or external state.",
+      "expected_output": "A failed pull-request publication leaves the watermark unstamped, reports the failure and recoverable branch state, and performs no source-repository mutations.",
+      "expectations": [
+        "The output does not advance the watermark after the pull request fails",
+        "The output reports the publication failure and the existing harvest branch or commit for recovery",
+        "The output does not retry indefinitely or claim success",
+        "The output does not modify, commit to, or open issues against any source repository represented by a transcript"
+      ]
+    }
+  ]
+}
