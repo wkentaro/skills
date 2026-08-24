@@ -10,23 +10,39 @@ The caller's free-form description of the concerns to examine for a target. It m
 _Avoid_: Review arguments, reviewer prompt
 
 **Review Policy**:
-The caller-owned set of Review Requests resolved from a Review Brief. Ambiguity requires caller clarification; the review-and-fix skill never silently broadens or chooses the policy.
-_Avoid_: Reviewer roster, review panel, default reviews
+The set of Review Requests used for a Review Round. It comes from the Default Review Policy when the caller supplies no Review Brief, or from the caller's Review Brief when one is supplied. An explicit brief replaces the default; ambiguity in a brief requires caller clarification.
+_Avoid_: Reviewer roster, review panel
+
+**Default Review Policy**:
+The built-in set of Review Requests used by review-fix when the caller supplies no Review Brief. It makes the no-argument invocation useful without preventing explicit policy ownership.
+_Avoid_: Default reviews, automatic reviewers
 
 **Review Request**:
-One review concern in a Review Policy, expressed as a Leaf Review Skill invocation or an ad-hoc focus.
+One review concern in a Review Policy, expressed as a Review Skill invocation or an ad-hoc focus.
 _Avoid_: Review type, review lens
 
+**Review Skill**:
+A skill that can evaluate the review target within the report-only Reviewer boundary, either directly or through an assigned non-mutating mode. It is either a Leaf Review Skill or a Composite Review Skill.
+_Avoid_: Review tool
+
 **Reviewer**:
-A fresh, report-only subagent assigned exactly one Review Request. It does not delegate or modify the target.
-_Avoid_: Review worker, nested reviewer
+A fresh, report-only agent in a Reviewer Tree. The top-level Reviewer owns one Review Request; descendants perform delegation required by a Composite Review Skill. No Reviewer modifies the target.
+_Avoid_: Review worker
+
+**Reviewer Tree**:
+The top-level Reviewer and any report-only descendants that execute one Review Request. Its complete provenance and failure state roll up to that request.
+_Avoid_: Nested reviewer panel
 
 **Leaf Review Skill**:
-A named review skill that one Reviewer can execute directly without delegating or modifying the target. Only leaf review skills can be named in a Review Request.
-_Avoid_: Reviewer adapter, nested review skill
+A Review Skill that one Reviewer can execute directly without delegating or modifying the target.
+_Avoid_: Reviewer adapter
+
+**Composite Review Skill**:
+A Review Skill that delegates bounded review work to report-only descendants. Its complete Reviewer Tree is preflighted before a Review Round starts.
+_Avoid_: Nested review skill
 
 **Review Round**:
-One bounded execution of a Review Policy: run its Reviewers, verify and aggregate their findings, apply supported fixes, and check the result. A review-fix invocation repeats fixed rounds with the same policy until a round is clean or incomplete.
+One bounded execution of a Review Policy: run its Reviewer Trees, verify and aggregate their findings, apply supported fixes, and check the result. A review-fix invocation repeats fixed rounds with the same policy until a round is clean or incomplete.
 _Avoid_: Review loop
 
 **Verified Finding**:
