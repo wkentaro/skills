@@ -2,29 +2,32 @@
   "skill_name": "review-fix",
   "evals": [
     {
-      "id": "missing-brief",
-      "prompt": "Use /review-fix on the current working tree. I supplied no arguments. For this evaluation, state the next observable action without accessing a repository.",
-      "expected_output": "A structured clarification for the missing Review Brief, with no automatic reviewers or mutations.",
+      "id": "default-policy",
+      "prompt": "Use /review-fix on the current working tree. I supplied no arguments. Assume every built-in review skill is installed, all Reviewer trees return clean reports, and enough agent slots are available. For this evaluation, describe the resulting workflow and report without accessing a repository.",
+      "expected_output": "One clean round using the five-request Default Review Policy without asking for a Review Brief.",
       "expectations": [
-        "The output identifies a structured-input clarification about review focus as the next action",
-        "The output does not select or suggest that it has started a default reviewer roster",
+        "The output resolves exactly five Review Requests: code-review, brooks-review, ask-exemplar, zero-tech-debt, and writing-code",
+        "The output does not ask the caller to supply a Review Brief",
+        "The output runs zero-tech-debt in analysis-only mode and writing-code in audit mode",
+        "The output allows code-review to delegate to its report-only Standards and Spec Reviewers",
+        "The output reports a clean outcome after one round",
         "The output does not claim to have edited, committed, rebased, commented, or pushed"
       ]
     },
     {
-      "id": "explicit-leaf-skills",
-      "prompt": "Run `/review-fix #41 ponytail-review and writing-code`. For this evaluation, assume #41 resolves to an editable PR and both named skills are installed Leaf Review Skills that return clean reports; describe the resulting workflow and report without accessing the forge.",
-      "expected_output": "One clean round with one fresh report-only Reviewer for each explicitly named leaf skill.",
+      "id": "explicit-review-skills",
+      "prompt": "Run `/review-fix #41 ponytail-review and writing-code`. For this evaluation, assume #41 resolves to an editable PR and both named skills are installed report-only Review Skills that return clean reports; describe the resulting workflow and report without accessing the forge.",
+      "expected_output": "One clean round with one fresh report-only Reviewer for each explicitly named skill.",
       "expectations": [
         "The output resolves exactly two Review Requests, one for ponytail-review and one for writing-code",
-        "The workflow preflights both skills as leaves and dispatches a fresh report-only Reviewer for each",
+        "The workflow preflights both skills as report-only and dispatches a fresh Reviewer for each",
         "The output reports a clean outcome after one round and starts no further round",
         "The output does not claim to commit, rebase, comment, push, or choose reviewer models"
       ]
     },
     {
       "id": "ad-hoc-brief",
-      "prompt": "Use `/review-fix authentication bypasses and secret leakage` on the current change. Assume no installed Leaf Review Skill unambiguously matches, and the Reviewer claims `auth.py:42 interpolates an untrusted tenant ID into SQL, enabling authentication bypass and secret leakage`; direct inspection disproves that claim. For this evaluation, describe the workflow and final report without modifying files.",
+      "prompt": "Use `/review-fix authentication bypasses and secret leakage` on the current change. Assume no installed Review Skill unambiguously matches, and the Reviewer claims `auth.py:42 interpolates an untrusted tenant ID into SQL, enabling authentication bypass and secret leakage`; direct inspection disproves that claim. For this evaluation, describe the workflow and final report without modifying files.",
       "expected_output": "One ad-hoc Reviewer covers the whole brief, and its disproved claim is reported as unverified with a clean outcome.",
       "expectations": [
         "The output creates exactly one ad-hoc Review Request rather than splitting the two concerns",
@@ -35,7 +38,7 @@
     },
     {
       "id": "verified-repair",
-      "prompt": "Use `/review-fix unsafe temporary-file replacement` on the current change. Assume no installed Leaf Review Skill matches. In round one, the ad-hoc Reviewer reports one claim; direct inspection and a focused reproduction verify it, a surgical repair is available, and the relevant checks pass. In round two, a fresh Reviewer reports no claims. For this evaluation, describe the workflow and final report without modifying files.",
+      "prompt": "Use `/review-fix unsafe temporary-file replacement` on the current change. Assume no installed Review Skill matches. In round one, the ad-hoc Reviewer reports one claim; direct inspection and a focused reproduction verify it, a surgical repair is available, and the relevant checks pass. In round two, a fresh Reviewer reports no claims. For this evaluation, simulate the workflow and final report without modifying actual files.",
       "expected_output": "The first round verifies and repairs the claim, then a fresh second-round Reviewer confirms the simulated target is clean and the repair remains uncommitted.",
       "expectations": [
         "The output creates exactly one ad-hoc Review Request",
@@ -59,21 +62,33 @@
     },
     {
       "id": "ambiguous-routing",
-      "prompt": "Use `/review-fix security` on the current change. Assume two installed Leaf Review Skills are equally plausible matches: auth-review and secrets-review. For this evaluation, state the next action without running either skill.",
-      "expected_output": "A structured clarification between the plausible leaf skills before any Reviewer starts.",
+      "prompt": "Use `/review-fix security` on the current change. Assume two installed Review Skills are equally plausible matches: auth-review and secrets-review. For this evaluation, state the next action without running either skill.",
+      "expected_output": "A structured clarification between the plausible review skills before any Reviewer starts.",
       "expectations": [
-        "The output identifies a structured-input choice between the plausible review skills as the next action",
+        "The output states that native structured input will present auth-review and secrets-review as the choices",
         "The output does not silently choose a skill or run both skills",
         "The output does not modify the target"
       ]
     },
     {
-      "id": "reject-non-leaf",
-      "prompt": "Use `/review-fix #41 code-review`. Assume #41 resolves, and inspection of code-review shows that it delegates to two subagents. For this evaluation, state the outcome without accessing the forge.",
-      "expected_output": "Preflight rejects the explicitly named non-leaf skill and returns incomplete before dispatch or mutation.",
+      "id": "nested-composite-skill",
+      "prompt": "Use `/review-fix #41 code-review`. Assume #41 resolves, code-review delegates to report-only Standards and Spec subagents, all three reports are clean, and enough agent slots are available. For this evaluation, describe the resulting workflow and report without accessing the forge.",
+      "expected_output": "One clean round whose code-review Reviewer delegates to two report-only axis Reviewers.",
       "expectations": [
-        "The output identifies code-review as incompatible because it delegates",
-        "The output rejects the whole round before starting a Reviewer",
+        "The output resolves exactly one Review Request for code-review",
+        "Preflight accepts code-review as a bounded report-only composite and reserves capacity for its descendants",
+        "The top-level code-review Reviewer delegates to separate Standards and Spec Reviewers",
+        "The output reports the full Reviewer tree provenance and a clean outcome after one round",
+        "No Reviewer modifies files, commits, rebases, comments, or pushes"
+      ]
+    },
+    {
+      "id": "reject-mutating-composite",
+      "prompt": "Use `/review-fix #41 review-and-publish`. Assume #41 resolves, and inspection of review-and-publish shows that one required descendant applies fixes and posts forge comments. For this evaluation, state the outcome without accessing the forge.",
+      "expected_output": "Preflight rejects the mutating composite and returns incomplete before dispatch or mutation.",
+      "expectations": [
+        "The output identifies the required writes and forge comments as incompatible with the report-only Reviewer boundary",
+        "The output rejects the complete Reviewer tree before starting any agent",
         "The output reports incomplete and does not modify, commit, rebase, comment, or push"
       ]
     }
