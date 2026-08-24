@@ -1,0 +1,7 @@
+interface:
+  display_name: "Harvest Sessions"
+  short_description: "Sweep recent sessions into the second brain"
+  default_prompt: "Use $harvest-sessions to sweep recent Claude Code and Codex sessions into the second brain."
+
+policy:
+  allow_implicit_invocation: false
