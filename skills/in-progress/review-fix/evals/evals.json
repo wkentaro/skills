@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": "default-policy",
-      "prompt": "Use /review-fix on the current working tree. I supplied no arguments. Assume every built-in review skill is installed, all Reviewer trees return clean reports, and enough agent slots are available. For this evaluation, describe the resulting workflow and report without accessing a repository.",
+      "prompt": "Use /review-fix on the current working tree. I supplied no arguments. Assume every built-in review skill is installed, all Reviewer trees return clean reports, and enough agent slots are available. For this evaluation, simulate the run and return exactly the resulting report without accessing a repository.",
       "expected_output": "One clean round using the five-request Default Review Policy without asking for a Review Brief.",
       "expectations": [
         "The output resolves exactly five Review Requests: code-review, brooks-review, ask-exemplar, zero-tech-debt, and writing-code",
@@ -11,6 +11,7 @@
         "The output runs zero-tech-debt in analysis-only mode and writing-code in audit mode",
         "The output allows code-review to delegate to its report-only Standards and Spec Reviewers",
         "The output reports a clean outcome after one round",
+        "The compact clean report omits empty claim, repair, and evidence-gap categories and lists each Reviewer Tree's provenance once",
         "The output does not claim to have edited, committed, rebased, commented, or pushed"
       ]
     },
@@ -76,16 +77,52 @@
       ]
     },
     {
+      "id": "stale-ci-sha",
+      "prompt": "Use `/review-fix #41 CI verification`. Assume the target HEAD is `bbbbbbbb`, the Full Reviewer reports no claims, and every GitHub Actions check is green but belongs to head SHA `aaaaaaaa`. The required local checks pass. For this evaluation, simulate the workflow and final report without accessing the forge or modifying files.",
+      "expected_output": "The green checks are rejected as stale evidence because their head SHA differs from the reviewed HEAD; passing local checks provide bounded evidence without claiming current remote CI passed.",
+      "expectations": [
+        "The output compares the check-run head SHA with the round's recorded HEAD",
+        "The output classifies the green checks for `aaaaaaaa` as stale or unavailable for `bbbbbbbb`",
+        "The output records the passing local checks without claiming remote CI passed for the reviewed HEAD",
+        "The output does not claim to wait for, trigger, or rerun CI",
+        "The downstream handoff records the exact reviewed HEAD and the stale-CI limitation"
+      ]
+    },
+    {
+      "id": "dirty-target-ci",
+      "prompt": "Use `/review-fix` on a working tree whose HEAD is `aaaaaaaa` and whose uncommitted diff is non-empty. Assume GitHub Actions is green for `aaaaaaaa`, every Reviewer reports clean, and the required local checks against the working tree pass. For this evaluation, simulate the workflow and final report without accessing the forge or modifying files.",
+      "expected_output": "The same-SHA checks are retained only as prior context because they did not execute against the uncommitted reviewed snapshot; local checks provide the current Verification Gate evidence.",
+      "expectations": [
+        "The output records both HEAD and the non-empty working-tree diff",
+        "The output does not treat same-SHA remote CI as evidence for the dirty reviewed snapshot",
+        "The output records remote CI only as prior context",
+        "The output uses the passing local checks as current snapshot evidence",
+        "The output does not claim that remote CI passed for the reviewed snapshot"
+      ]
+    },
+    {
       "id": "adaptive-middle-round",
-      "prompt": "Use `/review-fix` with no arguments. Assume the first Full round runs the Default Review Policy and only writing-code reports a Verified Finding. Its surgical repair changes only code-style concerns and passes the Repair Gate. A fresh writing-code Reviewer reports no claims in the Delta round, then every fresh Reviewer in the Final Full round reports clean. For this evaluation, simulate the workflow and final report without modifying actual files.",
-      "expected_output": "The run narrows its middle round to writing-code, then requires a clean five-request Final Full round before reporting clean.",
+      "prompt": "Use `/review-fix` with no arguments. Assume the first Full round runs the Default Review Policy and only writing-code reports a Verified Finding. Its surgical repair changes only a local code-style concern, changes no interface, cross-module behavior, dependency or security boundary, or contract term, and passes the Repair Gate. A fresh writing-code Reviewer reports no claims in the Delta round, and the orchestrator can demonstrate that the other four Review Requests are unaffected. For this evaluation, simulate the workflow and final report without modifying actual files.",
+      "expected_output": "The run narrows its second round to writing-code and reports clean without an unnecessary five-request rerun because every narrow-repair closure condition is satisfied.",
       "expectations": [
         "The first Full round dispatches all five Default Review Policy requests",
         "The repair passes a Repair Gate that rechecks the finding, sibling paths, and relevant checks",
         "The Delta round dispatches only a fresh writing-code Reviewer and explains why the other four requests are not impacted",
         "The output states that the authoritative five-request Review Policy remains unchanged",
-        "The Final Full round dispatches all five requests with fresh Reviewers",
-        "The output reports clean only after the Final Full round and leaves the repair uncommitted"
+        "The output reports clean after the Delta round because every accepted claim is verified-closed and every narrow-repair closure condition holds",
+        "The output does not dispatch a redundant Final Full round and leaves the repair uncommitted"
+      ]
+    },
+    {
+      "id": "broad-repair-final-full",
+      "prompt": "Use `/review-fix` with no arguments. Assume the first Full round finds one Verified Finding whose repair changes a public interface. The repair passes its Repair Gate, and every Reviewer returns clean in the required next Full round. For this evaluation, simulate the workflow and final report without modifying actual files.",
+      "expected_output": "The public-interface repair cannot use narrow Delta closure, so a clean Full round over the complete policy is required before reporting clean.",
+      "expectations": [
+        "The output identifies the public-interface change as requiring Full review",
+        "The output does not report clean from a partial Delta round",
+        "The output dispatches every Review Request in the final Full round",
+        "The output reports clean only if that Full round has no Verified Findings",
+        "The repair remains uncommitted"
       ]
     },
     {
