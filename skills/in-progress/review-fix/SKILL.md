@@ -60,8 +60,9 @@ work it requires. Every agent in the tree inherits the same report-only boundary
 - When no skill is named, match the brief against installed Review Skills.
   One unambiguous match uses that skill; no match creates one ad-hoc Reviewer
   from the brief; several plausible matches require native structured input to
-  select one. Offer a multi-skill panel only when the caller explicitly asks for
-  multiple Review Requests.
+  select one. Start no Reviewer and leave the target unchanged until selection.
+  Offer a multi-skill panel only when the caller explicitly asks for multiple
+  Review Requests.
 - Several concerns in one skill-free brief remain one ad-hoc Review Request.
   Never split prose into an implicit panel.
 - Text around explicit skill names refines those requests. If it clearly adds a
@@ -104,8 +105,11 @@ observations as suggestions, not Verified Findings or repair work.
 
 Keep the resolved Review Policy authoritative across rounds. A Full Review
 Round dispatches every Review Request; a Delta Review Round dispatches only the
-Impacted Review Requests. The first round is Full, and `clean` requires a later
-Full round whenever any repair changed the target.
+Impacted Review Requests. The first round is Full. After a repair, a clean Delta
+round may finish the run only when the Impacted set is demonstrably complete,
+every accepted claim is verified-closed, the Repair Gate passes, and the repair
+does not change a public interface, cross-module behavior, dependency boundary,
+security boundary, or contract term. Ambiguity requires a later Full round.
 
 Maintain two compact ledgers in orchestration state, never in the target:
 
@@ -165,6 +169,10 @@ the set. When that set is the complete Review Policy, the next round is Full.
    confirm each repaired claim is absent and inspect sibling paths sharing its
    root cause. A code or test failure, unmet required verification, or unsafe
    repair makes the outcome `incomplete`.
+   Treat remote CI as evidence for the reviewed snapshot only when the target has
+   no uncommitted changes and the run's head SHA equals the round's recorded HEAD.
+   Otherwise the run is prior context, not Verification Gate evidence. Observe
+   matching CI when it already exists; do not wait for, trigger, or rerun it.
    Classify each non-successful remote CI result as a code or test failure,
    infrastructure or account failure, cancelled or superseded run, or unavailable
    evidence by inspecting executed steps and annotations. When no steps ran for
@@ -175,7 +183,8 @@ the set. When that set is the complete Review Policy, the next round is Full.
    `clean`. A repaired round is `fixed` and starts the round selected from the
    Impacted Review Requests: Full when the set is the complete Review Policy,
    Delta otherwise. A Delta round with no Verified Findings is
-   `ready-for-full-review` and starts a Full round. `incomplete` ends the run
+   `clean` when it meets the narrow-repair closure conditions above; otherwise it
+   is `ready-for-full-review` and starts a Full round. `incomplete` ends the run
    without further edits.
 
 Continue only while each `fixed` round changes the target and passes the Repair
@@ -184,25 +193,39 @@ make a supported repair, makes the outcome `incomplete` instead of cycling.
 
 ## Return the outcome
 
-Report whether the Review Policy was default or caller-supplied, the resolved
-Review Requests, Scope Contract, each round's scope and Reviewer Tree provenance,
-Claim Ledger states, Verified Findings, rejected claims and remedies, unverified
-claims and evidence gaps, superseded remedies, automation gaps, repairs,
-Verification and Repair Gates, checks and CI classifications, and Review Outcome.
-Finish with exactly one terminal outcome. For each Composite Review Skill,
-provenance names the top-level Reviewer and every descendant role, and records
-that preflight accepted the tree with enough agent capacity. State the exact
-Review Request count, identify the fresh top-level Reviewer dispatched for each
-included request, and explain each Delta subset while confirming that the
-authoritative Review Policy remained unchanged.
+Choose one output form:
 
-End with a compact downstream handoff containing the target and base refs, final
-HEAD and diff hash, terminal outcome, uncommitted repair summary, checks and CI
-classifications, rejected and unverified claims, automation gaps, and Reviewer
-Tree provenance. This handoff is the sole input later history or publication
-skills need from this run.
+- For a one-round `clean` run, return only the compact downstream handoff. Include
+  the policy source, exact Review Request count, Scope Contract, round scope,
+  Reviewer Tree provenance and slot reservation, target and base refs, final HEAD
+  and diff hash, checks and CI classifications, and terminal outcome once. Do not
+  narrate the workflow separately or include empty categories; omission means the
+  category is absent, not rendered as `None`.
+- Otherwise, report the policy source, resolved Review Requests, Scope Contract,
+  each round's scope and Reviewer Tree provenance, non-empty Claim Ledger states,
+  Verified Findings, rejected claims and remedies, unverified claims and evidence
+  gaps, superseded remedies, automation gaps, repairs, Verification and Repair
+  Gates, checks and CI classifications, and Review Outcome. Use compact tables or
+  lists, omit empty categories, and state repeated clean provenance once. End with
+  a compact downstream handoff containing the target and base refs, final HEAD and
+  diff hash, terminal outcome, non-empty repair and claim summaries, checks and CI
+  classifications, automation gaps, and Reviewer Tree provenance.
 
-- `clean`: a Full round on the complete current diff has no Verified Findings.
+For each repaired round, explicitly name the Synthesis Gate, Repair Gate, and
+`fixed` outcome. Give each repaired claim one ledger row containing its Reviewer
+provenance and complete state progression. A preflight `incomplete` report states
+that the target, repository history, and forge state remain unchanged. For each
+Composite Review Skill, provenance names the top-level Reviewer and every
+descendant role, and records that preflight accepted the tree with enough agent
+capacity. State the exact Review Request count, identify the fresh top-level
+Reviewer dispatched for each included request, and explain each Delta subset while
+confirming that the authoritative Review Policy remained unchanged.
+
+Finish with exactly one terminal outcome. The downstream handoff is the sole input
+later history or publication skills need from this run.
+
+- `clean`: a Full round on the complete current diff has no Verified Findings, or
+  a later clean Delta round meets the narrow-repair closure conditions.
 - `incomplete`: the requested policy could not finish safely.
 
 Leave all repairs uncommitted. Do not commit, rebase, comment, or push. The
