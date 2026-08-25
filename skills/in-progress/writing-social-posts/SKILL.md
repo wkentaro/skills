@@ -106,8 +106,7 @@ remaining sentence would lose a fact.
 
 ## 4. Refine against the tells
 
-Run `/humanizer` first — it catches em dashes, rule-of-three, negative
-parallelism. Then hunt these, which survived it on a real draft:
+Hunt these tells:
 
 | tell | before → after |
 |---|---|
@@ -145,10 +144,9 @@ parenthesize it.
 
 ### Preserve authored roughness
 
-Use `/humanizer` as an audit, not a mandate to normalize the user's copy. The
-user's draft and writing samples are the source of truth for voice. Keep casual
-lowercase, fragments, parentheticals, uneven rhythm, and asides when they are
-clear and characteristic. Separate actual defects from details a copy editor
+The user's draft and writing samples are the source of truth for voice. Keep
+casual lowercase, fragments, parentheticals, uneven rhythm, and asides when they
+are clear and characteristic. Separate actual defects from details a copy editor
 could polish; changing the latter can make a human post sound generated.
 
 Final review is a **preservation gate**. Change wording only when it misstates a
