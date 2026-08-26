@@ -7,7 +7,9 @@ description: Write or review a pull/merge request body. Use when drafting or aud
 
 The job of a PR/MR description is to compress what the reviewer needs to know that **is not visible in the diff**. Apply this test to every sentence.
 
-To embed screenshots or video, read [MEDIA.md](MEDIA.md).
+To embed screenshots or video, read [MEDIA.md](MEDIA.md). Check repository
+visibility with `gh repo view --json isPrivate` before choosing a URL;
+`raw.githubusercontent.com` images do not render from private repositories.
 
 ## One block, one line
 

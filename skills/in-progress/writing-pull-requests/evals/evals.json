@@ -38,6 +38,17 @@
       ]
     },
     {
+      "id": "media-visibility-gate",
+      "prompt": "A screenshot committed in the current PR branch needs to appear inline in the GitHub PR description, but you have not checked whether the repository is public or private. Explain how you choose a working URL and state the exact check; do not actually run anything.",
+      "expected_output": "Check repository visibility first, use a SHA-pinned raw.githubusercontent.com URL only for a public repository, and use a private-repository-safe media route otherwise.",
+      "expectations": [
+        "The answer checks visibility with `gh repo view --json isPrivate` before choosing the URL.",
+        "The answer limits `raw.githubusercontent.com` to public repositories and says it does not render for private-repository viewers.",
+        "For a private repository, the answer chooses a route from MEDIA.md that carries viewer authentication, such as a user-attachments URL or the SHA-pinned `github.com/<owner>/<repo>/raw/...` form.",
+        "Any URL derived from the committed asset is pinned to the full commit SHA rather than a mutable branch name."
+      ]
+    },
+    {
       "id": "media-video",
       "prompt": "You recorded a 20-second screen capture at /tmp/demo.mp4 showing the fixed interaction, and you are about to open a PR on a public GitHub repository. How do you get the video playing inline in the PR description? State the route and the exact steps; do not actually run anything.",
       "expected_output": "Upload via the token-authenticated user-attachments endpoint with content_type=video/mp4, then embed the returned URL as a bare line, since only user-attachments URLs render an inline player.",
