@@ -11,6 +11,6 @@ description: Push the current branch and create or update its GitHub pull reques
 
 3. Check for an open PR from the current branch. Push with tracking; use `--force-with-lease` only after an intentional history rewrite.
 
-4. Create the PR or update its title and body, passing the body through a temporary `--body-file` deleted afterward. Direct user invocations create a ready PR; autonomous invocations create a draft unless explicitly requested otherwise.
+4. Create the PR with `--assignee @me`, or update its title and body, passing the body through a temporary `--body-file` deleted afterward. Direct user invocations create a ready PR; autonomous invocations create a draft unless explicitly requested otherwise.
 
 5. Return the PR URL.
