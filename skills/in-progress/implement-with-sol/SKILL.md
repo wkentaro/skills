@@ -21,7 +21,9 @@ Codex implements in a worktree; you keep planning, review, and synthesis. Ends w
 
    Global flags precede the subcommand: follow-ups are `codex exec --sandbox workspace-write resume --last "<prompt>"` — flags placed after `resume` fail. The model comes from `~/.codex/config.toml`; override with `-m`.
 
-   The prompt names: the spec path with "follow every decision in it"; the existing code and test patterns to study; the definition of done (build, lint, and tests pass; required cases covered); a review-fix instruction ("re-review your own diff against the spec, fix findings, repeat until a pass finds nothing"); "Do NOT commit — leave changes in the working tree"; and "print files changed and each verification command with its result".
+   The prompt names: the spec path with "follow every decision in it"; the existing code and test patterns to study; the definition of done (build, lint, and tests pass; required cases covered); the review instruction "when done, run the review-fix skill on the working tree with its Default Review Policy — supply no review brief"; "Do NOT commit — leave changes in the working tree"; and "print files changed and each verification command with its result".
+
+   Word the review instruction exactly that way: any prose describing what to review becomes a Review Brief, and a brief replaces the Default Review Policy with a single ad-hoc reviewer instead of the full panel.
 
 4. **Verify**: rerun the claimed checks yourself, review the diff against the spec decision by decision, and smoke-test edge cases the spec calls out. Codex's report is a claim, not evidence.
 
