@@ -14,7 +14,7 @@ user, then create the labels with `gh` and update the agent docs.
 
 ## The canonical set
 
-Three groups, kept small on purpose. This skill owns their GitHub label objects
+Four groups, kept small on purpose. This skill owns their GitHub label objects
 (name, color, description) and the agent-facing contract in
 `docs/agents/triage-labels.md`. Anything a *tool* already owns (Dependabot,
 labeler actions) is **not** here.
@@ -51,7 +51,7 @@ clear whether a state applies to issues, PRs, or both.
 it rather than minting a PR-scoped twin, so "waiting on a human" reads
 identically on both. Every other triage role is issue-only.
 
-### PR-verdict axis
+### Agent PR-verdict axis
 
 Whose-turn routing on a PR needs almost no labels: a non-draft PR with no
 verdict is, by definition, the agent's to finalize, and a PR parked on an
@@ -100,10 +100,26 @@ Mergify, bors, GitHub auto-merge). A bot wired to merge on `ready-to-merge` woul
 turn the agent's recommendation into an actual merge and break this invariant, so
 do **not** rename it back to that conventional string.
 
-A verdict endorses one specific diff, so it goes **stale** the moment the PR
-changes: a new commit after a verdict means the agent must clear that label and
-re-review before the emerald queue can be trusted again. Pushes after a verdict
-are rare, so this stays a manual step rather than something worth a CI workflow.
+### Maintainer PR-verdict axis
+
+GitHub prevents pull-request authors from approving their own PRs. A maintainer
+who has reviewed a self-authored PR can record that distinct human decision while
+CI is still pending:
+
+| Label                 | Color    | Description (PR-scoped)                                      |
+| --------------------- | -------- | ------------------------------------------------------------ |
+| `maintainer-approved` | `0E8A16` | pr: Maintainer reviewed this head and approves merging after required checks pass |
+
+This label records human acceptance, not merge readiness; required checks remain
+authoritative, and the maintainer still performs the merge. An agent applies it
+only after explicit maintainer direction and never infers it from an agent verdict,
+green CI, or mergeability. It may coexist with a `recommend-*` label because the
+two labels record different authorities.
+
+Both verdict axes bind to one specific diff, so they go **stale** the moment the
+PR changes. A new commit means the applicable verdict label must be cleared and
+renewed by its authority. Pushes after a verdict are rare, so this stays a manual
+step rather than something worth a CI workflow.
 
 **A couple of label families are deliberately left out, because a *tool* already
 owns them:**
@@ -151,6 +167,7 @@ the same whether you're looking at an issue or a PR:
 | Agent's turn to act                    | `ready-for-agent`                         | no verdict label, non-draft               |
 | Maintainer's turn — endorsed           | `ready-for-human` (human implements)      | `recommend-merge` (human reviews/merges)  |
 | Maintainer's turn — must decide        | `needs-triage` (maintainer evaluates)     | `recommend-triage` (product/scope call)   |
+| Maintainer accepted — checks/merge pending | *(no issue equivalent)*                | `maintainer-approved`                     |
 | Won't proceed                          | `wontfix`                                 | `recommend-close`                         |
 
 Three asymmetries are intentional, not gaps:
@@ -164,6 +181,8 @@ Three asymmetries are intentional, not gaps:
   *implement it*; `recommend-merge` on a PR means *review and merge it*. Same "your
   turn, human" role, different verb — which is why `ready-for-human` stays
   issue-only and `recommend-merge` is its PR counterpart rather than a shared label.
+  Once that review is complete, `maintainer-approved` records the maintainer's own
+  verdict and has no issue equivalent.
 - **`needs-triage` spans two PR states.** On issues, "maintainer must evaluate" is
   one state. On PRs it splits by *when*: a fresh PR is the agent's to finalize
   (no verdict, non-draft), and only *after* the agent finalizes does a leftover
@@ -221,6 +240,7 @@ gh label create "wontfix"         --color ffffff --description "issue: Will not 
 gh label create "recommend-merge"  --color 0E8A16 --description "pr: Agent finalized and endorses it: review and merge"   --force --repo "$REPO"
 gh label create "recommend-close"  --color D93F0B --description "pr: Agent recommends closing: your call to review or close" --force --repo "$REPO"
 gh label create "recommend-triage" --color FBCA04 --description "pr: Agent finalized it but the merge/close call is yours" --force --repo "$REPO"
+gh label create "maintainer-approved" --color 0E8A16 --description "pr: Maintainer reviewed this head and approves merging after required checks pass" --force --repo "$REPO"
 ```
 
 To set up several repos, repeat with each `--repo`.
@@ -236,10 +256,11 @@ contract. Preserve unrelated repository-specific content. The document must:
   triage label and one type label; an issue with no triage label is fresh work
   for the agent to route, while `needs-triage` is reserved for a maintainer
   decision;
-- document the three mutually exclusive PR verdicts, the shared `needs-info`
-  state, and the draft flag as the in-progress state;
-- state that verdicts recommend rather than merge or close, and that a new
-  commit makes a verdict stale and requires removal and re-review.
+- document the three mutually exclusive agent PR verdicts, the explicit-human-only
+  `maintainer-approved` verdict, the shared `needs-info` state, and the draft flag
+  as the in-progress state;
+- state that verdicts record decisions rather than merge or close, and that a new
+  commit makes a verdict stale and requires removal and renewal by its authority.
 
 Ensure the root `AGENTS.md` points to that file when issue triage, issue labels,
 or PR verdict labels are involved. Add only the smallest contextual pointer;
