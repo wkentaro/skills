@@ -1,25 +1,22 @@
 ---
 name: setup-github-labels
-description: Apply the canonical GitHub issue and pull-request label set to a repository.
+description: Apply and document the canonical GitHub issue and pull-request label set in a repository.
 disable-model-invocation: true
 ---
 
 # Setup GitHub Labels
 
-Apply one intentional label vocabulary to whatever repo you run this in. The
-tables below are the source of truth, not the GitHub UI. This is a prompt-driven
-skill, not a deterministic script: read the set, explore the repo, confirm with
-the user, then create the labels with `gh`.
+Apply one intentional label vocabulary to whatever repo you run this in, then
+record its operational meaning for agents. The tables below are the source of
+truth, not the GitHub UI. This is a prompt-driven skill, not a deterministic
+script: read the set, explore the repo, preview every change, confirm with the
+user, then create the labels with `gh` and update the agent docs.
 
 ## The canonical set
 
-Three groups, kept small on purpose. This skill owns the GitHub label *objects*
-(name, color, description) for all of them. `setup-matt-pocock-skills` owns the
-*agent wiring* for the triage roles — the role→string mapping in
-`docs/agents/triage-labels.md` that tells the `triage` skill which string to
-apply — and never touches a label's color or description. So the two skills
-split by concern, not by which labels: one owns the labels on GitHub, the other
-owns how the agent refers to them. Anything a *tool* already owns (Dependabot,
+Three groups, kept small on purpose. This skill owns their GitHub label objects
+(name, color, description) and the agent-facing contract in
+`docs/agents/triage-labels.md`. Anything a *tool* already owns (Dependabot,
 labeler actions) is **not** here.
 
 ### Issue `type:` axis
@@ -38,10 +35,9 @@ Types and the labels can be retired.
 ### Issue triage axis
 
 The five whose-turn triage roles the `triage` skill moves an issue through.
-`setup-matt-pocock-skills` decides *which string* each role maps to (and records
-it in `docs/agents/triage-labels.md`); this skill creates the actual GitHub
-labels with a consistent scope prefix, so it reads at a glance whether a state
-applies to issues, PRs, or both.
+This skill creates the GitHub labels and records the role-to-string mapping in
+`docs/agents/triage-labels.md`. The scope prefix in each description makes it
+clear whether a state applies to issues, PRs, or both.
 
 | Label             | Color    | Description                                        |
 | ----------------- | -------- | -------------------------------------------------- |
@@ -143,17 +139,15 @@ it applies, so tools and people don't cross-apply.
 ### Issue ↔ PR equivalents
 
 Issues and PRs run the same underlying state machine — *whose turn is it, and
-what must they do* — but express it with different signals. This skill creates
-both sides' labels; `setup-matt-pocock-skills` owns the issue side's *vocabulary*
-(which string each triage role maps to). The PR side also leans on GitHub's
-native draft flag. This table lines them up so a state reads the same whether
-you're looking at an issue or a PR:
+what must they do* — but express it with different signals. The PR side also
+leans on GitHub's native draft flag. This table lines them up so a state reads
+the same whether you're looking at an issue or a PR:
 
 | State (whose turn / what's needed)     | Issue (triage role)                       | PR (verdict + draft flag)                 |
 | -------------------------------------- | ----------------------------------------- | ----------------------------------------- |
-| Unprocessed — someone must look        | `needs-triage`                            | no verdict label, non-draft               |
+| Fresh — agent must route or finalize   | no triage label                           | no verdict label, non-draft               |
 | Blocked on an outside human            | `needs-info`                              | `needs-info` (same label, reused)         |
-| Still being built / iterated           | *(open issue, no extra label)*            | **draft** flag                            |
+| Still being built / iterated           | *(no issue equivalent)*                   | **draft** flag                            |
 | Agent's turn to act                    | `ready-for-agent`                         | no verdict label, non-draft               |
 | Maintainer's turn — endorsed           | `ready-for-human` (human implements)      | `recommend-merge` (human reviews/merges)  |
 | Maintainer's turn — must decide        | `needs-triage` (maintainer evaluates)     | `recommend-triage` (product/scope call)   |
@@ -161,11 +155,11 @@ you're looking at an issue or a PR:
 
 Three asymmetries are intentional, not gaps:
 
-- **`needs-triage` and `ready-for-agent` collapse into one PR state.** A non-draft
-  PR with no verdict already means "agent, finalize this", so the PR side never
-  separates "needs evaluation" from "agent's turn" — there is no PR `needs-triage`
-  or `ready-for-agent` label. On the issue side they stay distinct because an
-  issue can sit triaged-but-not-yet-assigned.
+- **Fresh and `ready-for-agent` collapse into one PR state.** A non-draft PR
+  with no verdict already means "agent, finalize this", so the PR side needs no
+  separate routing label. On the issue side, no triage label means the agent
+  must route the issue; `ready-for-agent` means it has passed that gate and is
+  ready for implementation.
 - **The maintainer's terminal action differs.** `ready-for-human` on an issue means
   *implement it*; `recommend-merge` on a PR means *review and merge it*. Same "your
   turn, human" role, different verb — which is why `ready-for-human` stays
@@ -182,7 +176,7 @@ above, so it needs no label of its own.
 
 ## Process
 
-Detect, preview, confirm, then apply.
+Detect, preview, confirm, apply, then document.
 
 ### 1. Detect the current repo
 
@@ -204,11 +198,16 @@ gh label list --repo "$REPO" --limit 200 --json name -q '.[].name'
 Labels in the tables but not in that list will be **created**; labels already
 present will have their color/description **updated**.
 
+Also inspect `docs/agents/triage-labels.md` and the root `AGENTS.md`. Preview
+whether the contract and its context pointer will be created, updated, or left
+unchanged. Preserve unrelated existing instructions.
+
 ### 3. Confirm, then apply
 
 Creating labels on a (often public) repo is an outward-facing action, so confirm
-with the user first. Then create each label from the tables with `--force`, which
-adds it if missing and updates color/description if it already exists:
+the complete label-and-documentation preview with the user first. Then create
+each label from the tables with `--force`, which adds it if missing and updates
+color/description if it already exists:
 
 ```bash
 gh label create "type: bug"     --color d73a4a --description "issue: Reporting a defect to fix"                   --force --repo "$REPO"
@@ -226,28 +225,38 @@ gh label create "recommend-triage" --color FBCA04 --description "pr: Agent final
 
 To set up several repos, repeat with each `--repo`.
 
-### 4. Report
+### 4. Document the contract
 
-Tell the user which labels were created vs updated. Non-canonical labels already
-on the repo are **left untouched** (this skill only adds/updates the canonical
-set). If they want to retire a stray label, that is a manual, deliberate step:
-`gh label delete "<name>" --repo "$REPO" --yes`. Deleting strips it off every
-issue/PR currently wearing it, so never do it without explicit confirmation.
+Create or update `docs/agents/triage-labels.md` as the durable agent-facing
+contract. Preserve unrelated repository-specific content. The document must:
 
-This skill creates the triage labels, but the engineering skills only *apply*
-them if the repo also has the agent wiring — the role→string mapping in
-`docs/agents/triage-labels.md`. If that file is absent
-(`test -f docs/agents/triage-labels.md`), recommend running
-`setup-matt-pocock-skills` to write it. That's a one-line pointer, not a
-requirement: the labels stand on their own; the wiring is what lets the `triage`
-skill reach for them. Skip the recommendation when the file is already present.
+- map the five standard issue triage roles to their exact label strings and
+  meanings;
+- name the `type:` axis and require each triaged issue to carry exactly one
+  triage label and one type label; an issue with no triage label is fresh work
+  for the agent to route, while `needs-triage` is reserved for a maintainer
+  decision;
+- document the three mutually exclusive PR verdicts, the shared `needs-info`
+  state, and the draft flag as the in-progress state;
+- state that verdicts recommend rather than merge or close, and that a new
+  commit makes a verdict stale and requires removal and re-review.
+
+Ensure the root `AGENTS.md` points to that file when issue triage, issue labels,
+or PR verdict labels are involved. Add only the smallest contextual pointer;
+do not copy the contract into `AGENTS.md`.
+
+### 5. Report
+
+Tell the user which labels were created vs updated and which documentation was
+created vs updated. Non-canonical labels already on the repo are **left
+untouched**. If they want to retire a stray label, that is a manual, deliberate
+step: `gh label delete "<name>" --repo "$REPO" --yes`. Deleting strips it off
+every issue/PR currently wearing it, so never do it without explicit
+confirmation.
 
 ## Changing the set
 
 Edit the tables above: add or remove a row, and keep the `gh label create` lines
-in step 3 in sync with them. For a triage role, also keep it consistent with the
-role→string mapping `setup-matt-pocock-skills` records in
-`docs/agents/triage-labels.md` — this skill owns the label's color and
-description, that skill owns which string the role maps to. Keep the set small:
-before adding a label, check it carries information the commit title, diff, or an
-existing label (or another skill's labels) doesn't.
+in step 3 and the required agent-contract content in step 4 in sync. Keep the
+set small: before adding a label, check it carries information the commit title,
+diff, or an existing label (or another skill's labels) doesn't.
