@@ -1,7 +1,7 @@
 interface:
   display_name: "Setup GitHub Labels"
-  short_description: "Apply the canonical GitHub label set"
-  default_prompt: "Use $setup-github-labels to preview and apply the canonical labels to this repository."
+  short_description: "Apply and document canonical GitHub labels"
+  default_prompt: "Use $setup-github-labels to preview, apply, and document the canonical labels in this repository."
 
 policy:
   allow_implicit_invocation: false
