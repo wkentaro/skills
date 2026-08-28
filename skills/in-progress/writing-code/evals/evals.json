@@ -14,13 +14,13 @@
     },
     {
       "id": 2,
-      "prompt": "Audit this change against the house conventions:\n\n```python\n# tests/loader_test.py\nclass TestLoader:\n    def test_load(self):\n        from pathlib import Path\n\n        # call load_records to read the file and return the parsed rows\n        rows = sorted(load_records(Path(\"a.json\"), True))\n        # the copy is defensive: load_records hands back a cached list callers mutate\n        backup = list(rows)\n        assert len(backup) == 2\n```",
+      "prompt": "Audit this change against the house conventions:\n\n```python\n# tests/loader_test.py\nclass TestLoader:\n    def test_load(self):\n        from pathlib import Path\n\n        # call load_records to read the file and return the parsed rows\n        rows = sorted(load_records(Path(\"a.json\"), True))\n        # keep a snapshot because normalize_rows mutates its input below\n        backup = list(rows)\n        normalize_rows(rows)\n        assert len(backup) == 2\n```",
       "expected_output": "A numbered finding list naming each broken rule and its concrete edit.",
       "expectations": [
         "The output flags the test class and proposes a plain `test_` function with fixtures",
         "The output flags the deferred import and moves it to the top of the file",
         "The output flags the first comment as restating what the code does, and deletes it",
-        "The output keeps the second comment as genuine reasoning but flags `load_records` named in its prose as stale-prone",
+        "The output keeps the second comment as genuine reasoning but flags `normalize_rows` named in its prose as stale-prone",
         "The output flags the bare `True` and spells out the keyword argument",
         "The output flags `list(rows)` and proposes `rows[:]`, since `sorted` makes `rows` statically a list",
         "The output flags the missing `-> None` on the test signature",
@@ -81,6 +81,16 @@
         "The output requires the moved table to be marked `Final`",
         "The output flags `_strip` as a one-line single-caller helper and inlines it",
         "The output flags the missing annotations on `main`"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Audit this change against the house conventions:\n\n```python\n# tests/report_test.py\ndef test_build_report() -> None:\n    rows = [Row(value=1)]\n    report = build_report(rows)\n    assert report == report\n```",
+      "expected_output": "A numbered finding rejecting the assertion that cannot detect a plausible production defect.",
+      "expectations": [
+        "The output rejects `assert report == report` because it does not verify observable behavior or detect a plausible production defect",
+        "The assertion finding cites Coding Standards and quotes the test rule's bold lead-in",
+        "The output does not invent conventions absent from the skill"
       ]
     }
   ]
