@@ -228,15 +228,14 @@ For every spin-off issue:
 1. **Dedup-search open issues first**; skip if one already covers it.
 2. Create it with `gh issue create` (or the repo's `issue-tracker.md`
    conventions), including the triage disclaimer and a link back to the
-   originating PR. Add a `type:` label if the substrate exists, but leave the
-   **triage state** to `/process-issues`: file it without a triage-state label so
-   the next `/process-issues` tick picks it up and routes it.
+   originating PR. When the triage substrate exists, add one `type:` label and
+   the `needs-triage` state so the maintainer can route it. Without that
+   substrate, create a plain issue.
 3. List it in the tick report.
 
 ## Composition
 
-The spin-off issues filed here land unlabeled, so `/process-issues` picks them up
-and triages them. An issue that becomes `ready-for-agent` is implemented by
-`/implement-issues`, whose resulting PR flows back into this pass. Three
-single-purpose passes, each `/loop`-paced, none ever merging: triage, implement,
-finalize.
+The spin-off issues filed here enter `needs-triage` when the repository has the
+triage substrate. A maintainer routes each one to `ready-for-agent` or
+`ready-for-human`; `/implement-issues` handles agent-ready work, whose resulting
+PR flows back into this pass. None of these passes ever merges.

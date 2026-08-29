@@ -121,9 +121,9 @@ from `triage-labels.md`). Every triaged issue also carries one category role
 
 ## Composition
 
-Spin-off issues from `/process-prs` land unlabeled, so this pass picks them up
-and triages them on its next tick (escalations from `/kaizen-codebase` arrive
-already labeled `needs-triage` and are left for the maintainer, not re-picked
-here). An issue this pass marks `ready-for-agent` is the handoff to
-`/implement-issues` (this pass does not write code or open PRs itself); the
-resulting PR is then handled by `/process-prs`.
+Spin-off issues from `/process-prs` and escalations from `/kaizen-codebase`
+arrive labeled `needs-triage` and are left for the maintainer, not re-picked
+here. Unlabeled external issues remain this pass's intake. An issue this pass
+marks `ready-for-agent` is the handoff to `/implement-issues` (this pass does not
+write code or open PRs itself); the resulting PR is then handled by
+`/process-prs`.
