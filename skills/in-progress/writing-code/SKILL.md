@@ -32,6 +32,11 @@ when nothing is broken. Findings look like this:
 2. Line 7 (Type annotations, Annotate every signature): add the return type, `-> None`.
 ```
 
+## Coding Standards
+
+- **Tests must verify observable behavior and be capable of detecting a plausible production defect.** Reject assertions derived only from test setup, mock configuration, guarantees already enforced by the language or type checker, or the production implementation.
+- **Implementation comments explain information the code cannot express, such as intent, constraints, or rationale.** Reject comments that narrate code.
+
 ## Outside Python
 
 The rules are written in Python because that is the language the house has documented.
@@ -83,7 +88,6 @@ translate the goal into an options object in TypeScript or named struct fields i
 ## Naming and comments
 
 - **Names replace comments.** If deleting a docstring makes a function unclear, rename the function.
-- **Comment the why.** Non-obvious reasoning earns a comment; restating what the code does does not.
 - **Keep identifiers out of comment prose.** A comment that names another function goes stale the moment that function is renamed, and nothing catches it.
 - **Verb-prefixed function names.** Start a function name with a verb naming what it does (`make_local_mask`, `compute_mask_iou`, `round_bbox_to_int`). Use a non-verb form only where it reads strictly better: predicates (`is_*`, `has_*`, `can_*`, `should_*`), classmethod constructors (`from_*`), and conversion idioms (`to_dict`). Prefer singular `is_*` over `are_*`, naming the subject: `is_redundant_pair(new, peer)`, not `are_redundant(new, peer)`. A noun-only name (`mask_iou`) or an adjective-noun name (`filled_mask_for_bbox`) reads as a value, not an action.
 
