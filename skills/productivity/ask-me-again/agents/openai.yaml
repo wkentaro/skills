@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ask Me Again"
+  short_description: "Turn pending questions into clickable options"
+  default_prompt: "Use $ask-me-again to re-ask the pending questions as interactive choices."
+
+policy:
+  allow_implicit_invocation: false
