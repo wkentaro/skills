@@ -162,7 +162,8 @@ Run `gh pr checkout <N>`, then confirm the current branch matches the PR's
    `/verify` picks the method per project type (CLI invocation, server boot,
    library import, GUI launch); skip for docs/refactor/test-only PRs.
 5. When the local branch differs from its remote after the rebase, repair, or
-   recommit steps, run `/make-pr` to push with lease and update the existing PR.
+   recommit steps, run `/sending-pull-request` to push with lease and update the
+   existing PR.
    Skip it when there is nothing to publish.
 6. Resolve CI **non-blocking**. If step 5 had nothing to publish, the existing
    checks are authoritative: read them directly and verdict now without waiting,

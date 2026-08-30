@@ -29,6 +29,6 @@ Codex implements in a worktree; you keep planning, review, and synthesis. Ends w
 
 5. **Fix rounds**: send each finding via `resume --last` as in step 3 and re-verify, until a review pass finds nothing. Trivial one-file tweaks may be fixed directly instead.
 
-6. **Ship**: commit per the logical-commits skill (`git-hunk skills get core logical-commits`), then invoke `make-pr`.
+6. **Ship**: commit per the logical-commits skill (`git-hunk skills get core logical-commits`), then invoke `sending-pull-request`.
 
 Done when a review pass finds nothing, the checks pass locally, and the PR URL is returned.

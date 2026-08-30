@@ -277,7 +277,7 @@ Corroborating primary sources:
 ## Implications for the skill
 
 The operational ranking and steps derived from this research live in
-`skills/in-progress/writing-pull-requests/MEDIA.md`; this file is the evidence
+`skills/in-progress/sending-pull-request/MEDIA.md`; this file is the evidence
 trail. External hosts (Imgur, uploads.sh, S3, visual-testing SaaS) add
 infrastructure, and anything Camo can fetch anonymously is public — a bad default
 for private-repo media.

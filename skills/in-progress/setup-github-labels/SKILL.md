@@ -137,8 +137,8 @@ author *is* the maintainer so review-request doesn't apply) stays a draft until
 the agent has a verdict. So there is deliberately no `ready-for-maintainer` /
 `ready-for-review` label: `recommend-merge` already *is* the "your turn to ship"
 signal, and the draft flag already owns "not yet". The maintainer's "needs my
-attention" filter is `is:pr is:open label:recommend-merge`. `/make-pr` opens
-autonomous PRs as draft for exactly this reason.
+attention" filter is `is:pr is:open label:recommend-merge`.
+`/sending-pull-request` opens autonomous PRs as draft for exactly this reason.
 
 The same draft flag is why there is no `do-not-merge` label: a "don't merge this
 yet" state is almost always temporary (a PR kept open to exercise CI, or one
