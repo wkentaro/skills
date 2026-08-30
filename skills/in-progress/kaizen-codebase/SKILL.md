@@ -109,11 +109,12 @@ the failure mode this skill exists to avoid.
    picks the method per project type). Skip it only when the change is
    non-behavioral (e.g. test-only or docs) or no smoke is practical, and note the
    reason in the report.
-7. `/make-pr`: push and open a **non-draft** PR (the branch is already
-   conventional, so no `/make-branch` rename is needed), assigned to yourself
+7. `/sending-pull-request`: push and open a **non-draft** PR (the branch is already
+   conventional, so no rename is needed), assigned to yourself
    (`--assignee @me`), and **no verdict label** (`/process-prs` applies that
-   during its independent review). `/make-pr` drafts PRs it opens autonomously by
-   default, so pass an **explicit ready (non-draft) request** to override that;
+   during its independent review). `/sending-pull-request` drafts PRs it opens
+   autonomously by default, so pass an **explicit ready (non-draft) request** to
+   override that;
    otherwise the PR lands as a draft and `/process-prs`'s non-draft queue never
    picks it up.
 8. If a load-bearing decision was made or a candidate was rejected for a reason a

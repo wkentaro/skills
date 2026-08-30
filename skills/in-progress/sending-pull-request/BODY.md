@@ -1,15 +1,8 @@
----
-name: writing-pull-requests
-description: Write or review a pull/merge request body. Use when drafting or auditing a PR/MR description, or embedding screenshots or video in one.
----
-
-# Writing PR/MR bodies
+# PR/MR body reference
 
 The job of a PR/MR description is to compress what the reviewer needs to know that **is not visible in the diff**. Apply this test to every sentence.
 
-To embed screenshots or video, read [MEDIA.md](MEDIA.md). Check repository
-visibility with `gh repo view --json isPrivate` before choosing a URL;
-`raw.githubusercontent.com` images do not render from private repositories.
+To embed screenshots or video, read [MEDIA.md](MEDIA.md).
 
 ## One block, one line
 
@@ -96,9 +89,9 @@ A `dict` → dataclass migration MR. Bloated draft (~190 words):
 >
 > [...3 more bullets recapping what the diff shows...]
 
-After the necessity test (~75 words):
+After the necessity test (~60 words):
 
-> Finishes what #200 started. `record` is now actually a `Record` instance, not a dict that happened to flow through a field typed `list[Record]`.
+> Finishes what #200 started.
 >
 > Two non-obvious bits:
 >

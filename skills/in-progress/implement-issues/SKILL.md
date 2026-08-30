@@ -99,11 +99,12 @@ issue body is context); run the steps below in order:
 
 ## 3. Open the PR
 
-`/make-pr`: push and open a **non-draft** PR (the branch is already
-conventional, so no `/make-branch` rename is needed), body `Closes #N`, assignee
+`/sending-pull-request`: push and open a **non-draft** PR (the branch is already
+conventional, so no rename is needed), body `Closes #N`, assignee
 the git user, and **no verdict label** (`/process-prs` applies that during its
-independent review). `/make-pr` drafts PRs it opens autonomously by default, so
-pass an **explicit ready (non-draft) request** to override that; otherwise the
+independent review). `/sending-pull-request` drafts PRs it opens autonomously by
+default, so pass an **explicit ready (non-draft) request** to override that;
+otherwise the
 PR lands as a draft and `/process-prs`'s non-draft queue never picks it up.
 Record the PR url in the report and stop.
 
