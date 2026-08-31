@@ -2,7 +2,6 @@
 name: ask-exemplar
 description: Consult the accepted standard and strongest supported exemplars for a decision, plan, design, completed artifact, or diff, then return a source-grounded recommendation or evaluation.
 compatibility: Needs a tool that can search or retrieve web pages. Without one, the skill reports Evidence Gaps instead of Standard or Exemplar claims.
-disable-model-invocation: true
 ---
 
 # ask-exemplar

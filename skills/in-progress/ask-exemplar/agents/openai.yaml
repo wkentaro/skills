@@ -4,4 +4,4 @@ interface:
   default_prompt: "Use $ask-exemplar to compare this Target with the Standard Finding and strongest supported Exemplars."
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true
