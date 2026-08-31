@@ -21,6 +21,19 @@ Treat prompts, commands, commit messages, and PR descriptions as claims. Verify 
 against the resulting files, refs, PR state, releases, or other observable output. Distinguish
 finished, published, and still-open work accurately.
 
+Read each stream deeply enough that a whole item cannot hide inside it:
+
+- Anything published outside this machine leaves no trace in git, `gh`, or the shell. Only the
+  transcript holds it, usually as the user pasting a URL or saying they posted, sent, replied,
+  shipped, or submitted. Search the day's transcripts for those before writing.
+- Judge the size of a change by the files it touched, not by its subject lines. Read
+  `--name-only` or a diffstat across the day; a run of narrow-sounding subjects routinely spans
+  far more surface than any one of them admits.
+- Never infer why a shell command ran. Attribute it to the session working in that repository
+  at that hour, or leave it out.
+- Codex transcripts usually yield no readable prompt. Attribute their work by `cwd` and
+  timestamp instead, and say so when that is all the evidence there is.
+
 History can contain credentials. Filter before printing tool output, never emit raw histories,
 and omit secrets and unnecessary personal or customer data from the post. Warn separately when
 a credential is found, without repeating its value.
