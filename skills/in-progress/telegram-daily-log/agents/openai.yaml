@@ -1,7 +1,0 @@
-interface:
-  display_name: "Telegram Daily Log"
-  short_description: "Summarize today and copy it for Telegram"
-  default_prompt: "Use $telegram-daily-log to summarize today’s accomplishments and copy the Telegram-ready post to my clipboard."
-
-policy:
-  allow_implicit_invocation: false
