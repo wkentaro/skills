@@ -24,7 +24,8 @@ place?", "should this be a helper?"). Answer from the matching rule and quote it
 rules it actually breaks, as a numbered list: the location, the rule cited by its section
 and its bold lead-in quoted verbatim, and the concrete edit. Give `file:line` where the
 change names its file, and the line alone where it does not. Report exactly `No findings.`
-when nothing is broken. Findings look like this:
+when nothing is broken. Apply the Tooling boundary before reporting. Findings look like
+this:
 
 ```
 1. `labelme/_app.py:1312` (Imports, Imports at the top): move `from pathlib import Path`
@@ -41,36 +42,29 @@ when nothing is broken. Findings look like this:
 
 The rules are written in Python because that is the language the house has documented.
 Most are structural and carry over unchanged: scoping, extraction (minus the `_` prefix
-below), thin entry points, reading top to bottom, guard clauses, imports, naming, comments, type
-annotations, and real dependencies over mocks. Apply those in any language, using whatever
-mechanism it provides.
+below), thin entry points, reading top to bottom, imports, naming, comments, type annotations,
+and real dependencies over mocks. Apply those in any language, using whatever mechanism it
+provides.
 
 Some rules are Python spellings of one idea, so carry the idea and drop the spelling.
-`Final` and `UPPER_CASE` (Scoping and constants): keep the immutability marker, whether
-`readonly` or `const`, but follow the language's own casing, since Go constants use
-MixedCaps and ALL_CAPS is not idiomatic there. `xs[:]` (Call sites), the container dunders (Class design),
-and the pytest structure rules (Tests) translate the same way.
+`xs[:]` (Call sites), the container dunders (Class design), and the pytest structure rules
+(Tests) translate the same way.
 
-The `_` prefix marking a private helper function has no equivalent worth carrying: it is
-wrong in Go, where capitalization controls export, and dated in TypeScript. Leave it in
-Python. Keyword arguments are the opposite case, absent as syntax but alive as a goal, so
-translate the goal into an options object in TypeScript or named struct fields in Go.
+The `_` prefix marking a private helper function is Python-only. Outside Python, neither
+require it nor flag an existing one; the language's own visibility rules decide. Keyword
+arguments are the opposite case, absent as syntax but alive as a goal, so translate the
+goal into an options object in TypeScript or named struct fields in Go.
 
 ## Scoping and constants
 
 - **Scope a value to its usage site.** A value used in one function lives inside it; promote to module scope only when a second function or module needs it.
 - **Parameterize on demand.** Keep a single-use value a local constant, and promote it to a parameter when a caller actually varies it.
-- **Constants are `Final` and `UPPER_CASE`.**
 
 ## Functions and entry points
 
 - **Thin entry points.** `main()` parses arguments and delegates. Lookup tables and config data live inside `main`, not at module scope.
 - **Extract for scope, not reuse.** Extract a single-caller helper to limit a variable's lifetime, narrow its scope, flatten nesting, or when the name adds meaning the expression lacks. Otherwise inline it where it is only one or two lines, since that much indirection buys nothing. Prefix an extracted helper `_` unless it is deliberate public API.
 - **Read top to bottom.** A function that reads straight through beats logic shredded into single-caller helpers, each one a jump the reader must reassemble. A module made mostly of one-caller helpers is fragmented, not modular. A `# section` comment inside a long function is the signal to extract; "this could be a function" is not. After any simplification, re-audit the helpers you touched.
-
-## Control flow
-
-- **Guard clauses over nesting.** Put the happy path at the outer indent and invert the negative cases into early exits, so the real work never hides behind extra indentation. `if cond: do_a_lot` becomes `if not cond: continue` in a loop, or `if not cond: return` in a function.
 
 ## Class design
 
@@ -81,9 +75,12 @@ translate the goal into an options object in TypeScript or named struct fields i
 - **Imports at the top.** A deferred import is for breaking a circular dependency, which should be rare.
 - **One `import` per line.**
 
-## Linting
+## Tooling boundary
 
-- **Rule selection belongs to the repository.** The house pins no ruff or ty rule set here. Read the repository's own linter configuration rather than guessing at it.
+- **Tooling owns decidable rules.** Run the repository's configured formatters, linters,
+  and type checks before an audit. Do not repeat their reported findings or assume rules
+  the repository has not enabled. When configuration or results are unavailable, audit
+  every rule here. Keep this skill for judgment tooling cannot prove.
 
 ## Naming and comments
 
@@ -107,5 +104,8 @@ translate the goal into an options object in TypeScript or named struct fields i
 - **Plain `test_` functions with fixtures,** never test classes.
 - **Mirror the source layout.** Test directories mirror source modules, and tests live in them rather than beside the code they cover. A module with several test files gets a subdirectory named after it (`tests/unit/hunk/` for `hunk.py`), and each file is named for the aspect it covers (`id_test.py`, not `hunk_id_test.py`).
 - **Split test files** instead of separating groups with comments.
-- **Deduplicate shared setup into a `@pytest.fixture`.**
+- **Fixtures manage lifecycle; helpers build values.** Put shared setup and teardown,
+  resources, or injected dependencies in a `@pytest.fixture`. Keep stateless factories and
+  transformations as plain helpers. A fixture would cache only the helper callable for a
+  test; each call would still build a fresh value while adding parameter plumbing.
 - **Real dependencies over mocks.** Drive a test through the real thing wherever it is cheap: an existing conftest fixture, an ephemeral subprocess, a dockerized service, an in-memory engine. Mocking a downstream system verifies only your reading of its API, and keeps passing after the real API changes shape. Reserve mocks for paid third-party APIs, irreversible side effects such as payments or mail to humans, and services with no offline mode. When unsure, measure: a sub-second real-dependency test beats the equivalent `MagicMock`.
