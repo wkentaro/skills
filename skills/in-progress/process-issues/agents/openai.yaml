@@ -1,7 +1,0 @@
-interface:
-  display_name: "Process Issues"
-  short_description: "Triage one batch of GitHub issues"
-  default_prompt: "Use $process-issues to triage one batch of open GitHub issues."
-
-policy:
-  allow_implicit_invocation: false
