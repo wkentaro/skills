@@ -1,7 +1,0 @@
-interface:
-  display_name: "Process PRs"
-  short_description: "Process one batch of GitHub pull requests"
-  default_prompt: "Use $process-prs to process one batch of open GitHub pull requests."
-
-policy:
-  allow_implicit_invocation: false
