@@ -1,7 +1,0 @@
-interface:
-  display_name: "Implement Issues"
-  short_description: "Implement one ready-for-agent issue"
-  default_prompt: "Use $implement-issues to implement one ready-for-agent issue and open a pull request."
-
-policy:
-  allow_implicit_invocation: false
