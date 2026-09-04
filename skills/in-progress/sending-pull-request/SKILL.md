@@ -30,6 +30,6 @@ To send work for review:
 
 5. Check for an open PR from the current branch. Push with tracking; use `--force-with-lease` only after an intentional history rewrite.
 
-6. Create the PR with `--assignee @me`, or update its title and body, using a temporary `--body-file` and deleting it afterward. A direct user invocation creates a ready PR; an autonomous invocation creates a draft unless the user requested otherwise.
+6. Create the PR with `--assignee @me`, or update its title and body, using a temporary `--body-file` and deleting it afterward. Pass each screenshot or video with `--attach` as described in [MEDIA.md](MEDIA.md). A direct user invocation creates a ready PR; an autonomous invocation creates a draft unless the user requested otherwise.
 
 7. Return the PR URL.
