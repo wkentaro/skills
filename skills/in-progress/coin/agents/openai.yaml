@@ -1,7 +1,0 @@
-interface:
-  display_name: "Coin"
-  short_description: "Coin a distinct product or company name"
-  default_prompt: "Use $coin to create and screen names from this brief."
-
-policy:
-  allow_implicit_invocation: false
