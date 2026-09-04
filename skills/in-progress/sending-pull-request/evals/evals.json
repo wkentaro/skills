@@ -28,46 +28,45 @@
     {
       "id": "media-private-repo",
       "prompt": "You have a local screenshot at /tmp/fix-proof.png that proves a rendering fix, and you are about to open a PR on a private GitHub repository. How do you get the screenshot inline into the PR description? State the route and the exact steps; do not actually run anything.",
-      "expected_output": "The user-attachments upload route via the token-authenticated uploads.github.com endpoint, with the binary kept out of the PR branch and the human drag-and-drop named as the fallback.",
+      "expected_output": "Reference the local screenshot in the body and pass it to `gh pr create --attach` so GitHub CLI uploads it and rewrites the reference without committing the binary.",
       "expectations": [
         "The answer does not commit the screenshot to the PR branch.",
-        "The answer does not claim a raw.githubusercontent.com URL renders for viewers on a private repo.",
-        "The answer uploads via POST to uploads.github.com/user-attachments/assets with the gh auth token and the target repo's repository_id, then embeds the returned github.com/user-attachments/assets URL.",
-        "The answer notes the endpoint is undocumented and names the web-UI drag-and-drop as the fallback when the POST fails.",
-        "The answer does not present the curl route as the same endpoint the browser's drag-and-drop calls."
+        "The answer puts a relative image reference such as `![Rendering fix](./fix-proof.png)` in the body and passes `/tmp/fix-proof.png` with `gh pr create --attach`.",
+        "The answer says `gh` rewrites the body reference to the uploaded asset.",
+        "The answer does not use curl, raw URLs, an assets branch, or a repository visibility gate."
       ]
     },
     {
-      "id": "media-visibility-gate",
-      "prompt": "A screenshot committed in the current PR branch needs to appear inline in the GitHub PR description, but you have not checked whether the repository is public or private. Explain how you choose a working URL and state the exact check; do not actually run anything.",
-      "expected_output": "Check repository visibility first, use a SHA-pinned raw.githubusercontent.com URL only for a public repository, and use a private-repository-safe media route otherwise.",
+      "id": "media-existing-pr",
+      "prompt": "A pull request already exists for the current branch. Append /tmp/before.png and /tmp/after.png to its description with useful image alt text; state the exact command, but do not run anything.",
+      "expected_output": "Use `gh pr edit` with one `--attach` flag per image and alt text after each path's `#`.",
       "expectations": [
-        "The answer checks visibility with `gh repo view --json isPrivate` before choosing the URL.",
-        "The answer limits `raw.githubusercontent.com` to public repositories and says it does not render for private-repository viewers.",
-        "For a private repository, the answer chooses a route from MEDIA.md that carries viewer authentication, such as a user-attachments URL or the SHA-pinned `github.com/<owner>/<repo>/raw/...` form.",
-        "Any URL derived from the committed asset is pinned to the full commit SHA rather than a mutable branch name."
+        "The command uses `gh pr edit` for the pull request belonging to the current branch.",
+        "The command repeats `--attach` for both files.",
+        "Each attachment uses the `<path>#<image alt text>` form.",
+        "The answer does not replace the existing body or commit either image."
       ]
     },
     {
       "id": "media-video",
       "prompt": "You recorded a 20-second screen capture at /tmp/demo.mp4 showing the fixed interaction, and you are about to open a PR on a public GitHub repository. How do you get the video playing inline in the PR description? State the route and the exact steps; do not actually run anything.",
-      "expected_output": "Upload via the token-authenticated user-attachments endpoint with content_type=video/mp4, then embed the returned URL as a bare line, since only user-attachments URLs render an inline player.",
+      "expected_output": "Pass the video to `gh pr create --attach`; GitHub CLI uploads it and appends an inline player without committing the file.",
       "expectations": [
-        "The answer uploads via POST to uploads.github.com/user-attachments/assets with content_type=video/mp4 and the repo's repository_id.",
-        "The returned URL is embedded as a bare URL on its own line, not wrapped in image syntax.",
-        "The answer does not offer a raw URL, orphan-branch URL, or release-asset URL as a way to get an inline player.",
+        "The answer passes `/tmp/demo.mp4` to `gh pr create --attach`.",
+        "The answer says the video renders as a player and takes no alt text.",
+        "The answer does not use image syntax, curl, a raw URL, an orphan branch, or a release asset.",
         "The answer does not commit the video to the PR branch."
       ]
     },
     {
-      "id": "media-orphan-fallback",
-      "prompt": "You have a local screenshot at /tmp/fix-proof.png for a PR on a public GitHub repository, and the team forbids undocumented API endpoints, so the user-attachments upload is off the table. How do you get the screenshot inline into the PR description using only documented git and gh primitives? State the exact commands; do not actually run anything.",
-      "expected_output": "The orphan assets-branch route: stage the file outside the checkout, build the orphan branch from a clean tree, return to the original branch by name, and embed a commit-SHA-pinned raw URL.",
+      "id": "media-partial-failure",
+      "prompt": "`gh pr create --attach /tmp/before.png --attach /tmp/after.png` exits nonzero because the second upload failed, but stdout printed a new PR URL. What do you do next? Do not actually run anything.",
+      "expected_output": "Treat the printed PR as created, inspect which attachment landed, and retry only the missing file with `gh pr edit --attach`.",
       "expectations": [
-        "The screenshot is copied outside the checkout before any branch surgery, and the sequence captures the current branch name first and returns to it by name (not `git checkout -`).",
-        "The answer embeds a commit-SHA-pinned raw URL and says to keep the assets branch permanently.",
-        "When covering an existing assets branch, the answer does not re-run `git checkout --orphan` or `git rm -rf .` on it.",
-        "The screenshot is not committed to the PR branch."
+        "The answer recognizes that the PR was created despite the nonzero exit.",
+        "The answer resolves and inspects the existing PR before retrying.",
+        "The answer retries only `/tmp/after.png` with `gh pr edit --attach`.",
+        "The answer does not rerun `gh pr create` or re-upload `/tmp/before.png`."
       ]
     }
   ]
