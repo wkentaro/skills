@@ -43,7 +43,6 @@
       "expected_output": "Findings covering the rules whose ideas travel, with the Python-only markers left alone.",
       "expectations": [
         "The output flags the missing explicit return types on both functions, since the annotation rule carries over",
-        "The output flags the inverted control flow and proposes an early return guard clause",
         "The output does not raise the `_` prefix on `_summarize` at all, since the house leaves that marker in Python",
         "The output does not propose inlining `_summarize`, whose name adds meaning and whose body is more than a line or two",
         "The output flags the bare `verbose` argument at the `render` call and proposes a named options object, since the keyword-argument goal travels even though the syntax does not",
@@ -66,7 +65,6 @@
       "expected_output": "A numbered finding list covering the misplaced constant, the container dunder, and the mocked list.",
       "expectations": [
         "The output flags `RETRY_LIMIT` living at module scope when only one function uses it, and moves it inside that function",
-        "The output requires the moved constant to be marked `Final` and named `UPPER_CASE`",
         "The output flags `__setitem__` on `Shape`, a domain entity that merely holds points, and proposes a named edit method",
         "The output flags mocking a plain `list` and proposes passing a real one"
       ]
@@ -78,7 +76,6 @@
       "expectations": [
         "The output flags `import argparse, sys` and splits it into one import per line",
         "The output flags `FORMATS` at module scope and moves the table inside `main`",
-        "The output requires the moved table to be marked `Final`",
         "The output flags `_strip` as a one-line single-caller helper and inlines it",
         "The output flags the missing annotations on `main`"
       ]
@@ -91,6 +88,17 @@
         "The output rejects `assert report == report` because it does not verify observable behavior or detect a plausible production defect",
         "The assertion finding cites Coding Standards and quotes the test rule's bold lead-in",
         "The output does not invent conventions absent from the skill"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Two test modules import this helper from `tests/conftest.py`. It holds no state and each call must return a fresh response. Should I convert it to a fixture? Would that cache or share the response instances?\n\n```python\ndef build_response(*, body: bytes) -> Mock:\n    response = Mock()\n    response.body = body\n    return response\n```",
+      "expected_output": "A direct answer that keeps the stateless response factory as a plain helper.",
+      "expectations": [
+        "The output keeps `build_response` as a plain helper rather than wrapping it in a fixture",
+        "The output explains that a fixture would cache only the factory callable, not the responses it creates",
+        "The output quotes the Fixtures manage lifecycle; helpers build values rule",
+        "The output does not invent a future need for fixture overriding, setup, or cleanup"
       ]
     }
   ]
